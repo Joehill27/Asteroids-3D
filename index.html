@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+		<meta charset='utf-8' />
+        <title>Asteroids 3D</title>
+    
+    <script src='https://threejs.org/build/three.min.js'></script>
+    <script src='cannon.js'></script>
+</head>
+<body>
+    <h1 align='center'>Asteroids 3D</h1>
+    <script type='text/javascript'>
+    
+    init();
+
+
+    function init() {
+        initEventListeners();
+    };
+
+    function initEventListeners() {
+        document.addEventListener('click', function() {
+            console.log('Shoot');
+        });
+
+        document.addEventListener('keydown', function(event) {
+            console.log(String.fromCharCode(event.which));
+        });
+    }
+    
+    </script>
+</body>
+	
+</html>
