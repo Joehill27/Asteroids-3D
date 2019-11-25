@@ -1,31 +1,71 @@
 <!doctype html>
 <html>
 <head>
-		<meta charset='utf-8' />
+        <meta charset='utf-8' />
+        <link rel="icon" href="./assets/icon.png" />
         <title>Asteroids 3D</title>
     
     <script src='https://threejs.org/build/three.min.js'></script>
-    <script src='cannon.js'></script>
+    <script src='./js/cannon.js'></script>
 </head>
 <body>
     <h1 align='center'>Asteroids 3D</h1>
     <script type='text/javascript'>
     
+    "use strict";
+	let scene, object, camera, renderer;
+
+
+    let WIDTH  = window.innerWidth;
+	let HEIGHT = window.innerHeight;
+	
+	render();
     init();
 
 
     function init() {
         initEventListeners();
+        scene = new THREE.Scene();
+		initRenderer();
+		initScene();
     };
+
+    function initRenderer() {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize(WIDTH, HEIGHT);
+		renderer.setClearColor (0x888888, 1);
+		document.body.appendChild(renderer.domElement);
+    }
+
+    function initScene() {
+        initCamera();
+
+    }
+
+    function initCamera() {
+
+    }
 
     function initEventListeners() {
         document.addEventListener('click', function() {
-            console.log('Shoot');
+            console.log('Shoot with mouse click');
         });
 
         document.addEventListener('keydown', function(event) {
-            console.log(String.fromCharCode(event.which));
+            console.log('pressed '+ String.fromCharCode(event.which));
         });
+
+        window.addEventListener (
+			"resize",
+			function () {
+				WIDTH = window.innerWidth ;
+				HEIGHT = window.innerHeight;
+				renderer.setSize(WIDTH,HEIGHT);
+				camera.aspect = WIDTH/HEIGHT;
+				camera.updateProjectionMatrix();
+				render();
+			}
+		);
     }
     
     </script>
