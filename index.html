@@ -13,22 +13,14 @@
 <body>
     <script type='text/javascript'>
       var scene, camera, renderer;
+
 init();
 animate();
+
 function initRenderer() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize ( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
-}
-function initCamera() {
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
-  camera.position.set(0, 100, 200);
-  camera.lookAt(scene.position);
-  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-  cameraControls.addEventListener("change", function() {
-   camera.updateProjectionMatrix();
-   render();
-  });  
 }
 function initSkyBox(){
   var materialArray = [];
@@ -55,56 +47,37 @@ function initSkyBox(){
   var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
   scene.add( skybox );  
 }
-function initScene() {
-//   var material = new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('images/crate.jpg') });
-//   var geometry = new THREE.CubeGeometry(50, 50, 50);
-//   var cube = new THREE.Mesh(geometry, material);
-//   cube.position.set(0, 25, 0);
-let material = new THREE.MeshStandardMaterial();
-    let objLoader = new THREE.OBJLoader();
-    let mtlLoader = new THREE.MTLLoader();
 
-    mtlLoader.setPath('./assets/');
-        mtlLoader.load(
-        "ship.mtl",
-        function (mtls){
-          mtls.preload();
-          objLoader.setMaterials(mtls);
-          objLoader.setPath("./assets/");
-          objLoader.load( 
-            "ship.obj",
-            function ( obj ) {
-                obj.scale.set(0.1,0.1,0.1);
-                camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 100, 1000);
-                camera.position.set(0, 250, 750);
-                // camera.lookAt(scene.position);
-                // camera.add(obj);
-                let pointLight = new THREE.PointLight( 0xffffff, 100000 );
-                pointLight.position = (100, 105, 200);
-                // obj.add(camera);
-                // scene.add(obj);
-                camera.add(obj);
-                scene.add(camera);
-                scene.add(pointLight);
-                render();
-            }
-          );
-        }
-      );
+function initScene() {
+  var material = new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('images/crate.jpg') });
+  var geometry = new THREE.CubeGeometry(50, 50, 50);
+  var cube = new THREE.Mesh(geometry, material);
+  cube.position.set(0, 25, 0);
+
+  var cam = new THREE.PerspectiveCamera;
+  cam.position.z = 50;
+  
+  cube.add(cam);
+  scene.add(cube);
 }
+
 function init() {
   scene = new THREE.Scene();
   initRenderer();
-//   initCamera();
+  initCamera();
   initSkyBox();
   initScene();
 }
+
 function animate() {
   requestAnimationFrame(animate);
   render();
 }
+
 function update() {
+
 }
+
 function render() {
   renderer.render(scene, camera);
 }

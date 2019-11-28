@@ -22,17 +22,6 @@ function initRenderer() {
   document.body.appendChild( renderer.domElement );
 }
 
-function initCamera() {
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
-  camera.position.set(0, 100, 200);
-  camera.lookAt(scene.position);
-  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-  cameraControls.addEventListener("change", function() {
-   camera.updateProjectionMatrix();
-   render();
-  });  
-}
-
 function initSkyBox(){
   var materialArray = [];
   materialArray.push(new THREE.MeshBasicMaterial({
@@ -65,6 +54,11 @@ function initScene() {
   var geometry = new THREE.CubeGeometry(50, 50, 50);
   var cube = new THREE.Mesh(geometry, material);
   cube.position.set(0, 25, 0);
+
+  var cam = new THREE.PerspectiveCamera;
+  cam.position.z = 50;
+  
+  cube.add(cam);
   scene.add(cube);
 }
 
