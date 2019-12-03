@@ -3,7 +3,7 @@
 <head>
     <meta charset='utf-8' />
     <title>Asteroids 3D</title>
-    
+
   <script src='./cannon.js'></script>
   <script src='https://threejs.org/build/three.min.js'></script>
   <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
@@ -23,13 +23,13 @@ function initRenderer() {
 }
 function initCamera() {
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
-  camera.position.set(100, 0, 0);
-  camera.lookAt(scene.position);
+  camera.position.set(100, 80, 0);
+  //camera.lookAt(scene.position);
   cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
   cameraControls.addEventListener("change", function() {
    camera.updateProjectionMatrix();
    render();
-  });  
+  });
 }
 function initSkyBox(){
   var materialArray = [];
@@ -54,7 +54,7 @@ function initSkyBox(){
   var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
   var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
   var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
-  scene.add( skybox );  
+  scene.add( skybox );
 }
 function initScene() {
 //   var material = new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('images/crate.jpg') });
@@ -73,11 +73,12 @@ let material = new THREE.MeshStandardMaterial();
           mtls.preload();
           objLoader.setMaterials(mtls);
           objLoader.setPath("./assets/");
-          objLoader.load( 
+          objLoader.load(
             "Arc170.obj",
             function ( obj ) {
                 obj.scale.set(0.1,0.1,0.1);
                 obj.position.set(0,0,0);
+                obj.rotation.set(0,-Math.PI/2,0)
                 // let pointLight = new THREE.PointLight( 0xffffff, 50 );
                 // pointLight.position = (10000,0,0);
                 // scene.add(pointLight);
@@ -85,7 +86,7 @@ let material = new THREE.MeshStandardMaterial();
                 ambientLight.position.set(0,0,0);
                 scene.add(ambientLight);
                 scene.add(obj);
-                
+
                 render();
             }
           );
@@ -112,5 +113,5 @@ function render() {
 }
     </script>
 </body>
-  
+
 </html>
