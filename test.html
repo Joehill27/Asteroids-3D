@@ -2,87 +2,144 @@
 <html>
 <head>
     <meta charset='utf-8' />
-        <title>Asteroids 3D</title>
-    
-    <script src='https://threejs.org/build/three.min.js'></script>
-    <script src='cannon.js'></script>
-    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <title>Asteroids 3D</title>
+
+  <script src='./cannon.js'></script>
+  <script src='https://threejs.org/build/three.min.js'></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+  <script  src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+  <script type='module' src="./js/Used-Three/MeshPhongMaterial.js"></script>
 </head>
 <body>
-    <h1 align='center'>Asteroids 3D</h1>
     <script type='text/javascript'>
-      var scene, camera, renderer;
+    var scene, camera, renderer;
+    var keyboard = {}, player;
+	
+	init();
+	
+	function initRenderer() {
+	  renderer = new THREE.WebGLRenderer();
+	  renderer.setSize ( window.innerWidth, window.innerHeight );
+	  document.body.appendChild( renderer.domElement );
+	}
+	
+	function initCamera() {
+	  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
+	  camera.position.set(100, 80, 0);
+	  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	  cameraControls.addEventListener("change", function() {
+	   camera.updateProjectionMatrix();
+	   render();
+	  });
+	}
+	
+	function initSkyBox(){
+	  var materialArray = [];
+	  materialArray.push(new THREE.MeshBasicMaterial({
+	    map: THREE.ImageUtils.loadTexture('images/cwd_lf.jpg')
+	  }));
+	  materialArray.push(new THREE.MeshBasicMaterial({
+	    map: THREE.ImageUtils.loadTexture('images/cwd_rt.jpg')
+	  }));
+	  materialArray.push(new THREE.MeshBasicMaterial({
+	    map: THREE.ImageUtils.loadTexture('images/cwd_up.jpg')}));
+	  materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
+	}));
+	  materialArray.push(new THREE.MeshBasicMaterial({
+	    map: THREE.ImageUtils.loadTexture('images/cwd_ft.jpg')
+	  }));
+	  materialArray.push(new THREE.MeshBasicMaterial({
+	    map: THREE.ImageUtils.loadTexture('images/cwd_bk.jpg')
+	  }));
+	  for (var i = 0; i < 6; i++)
+	     materialArray[i].side = THREE.BackSide;
 
-init();
-animate();
+	  var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
+	  var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
+	  var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+	  scene.add( skybox );
+	}
+	
+	function initScene() {
+	let material = new THREE.MeshStandardMaterial();
+	    let objLoader = new THREE.OBJLoader();
+	    let mtlLoader = new THREE.MTLLoader();
 
-function initRenderer() {
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize ( window.innerWidth, window.innerHeight );
-  document.body.appendChild( renderer.domElement );
-}
+	    mtlLoader.setPath('./assets/');
+	        mtlLoader.load(
+	        "Arc170.mtl",
+	        function (mtls){
+	          mtls.preload();
+	          objLoader.setMaterials(mtls);
+	          objLoader.setPath("./assets/");
+	          objLoader.load(
+	            "Arc170.obj",
+	            function ( obj ) {
+	                obj.scale.set(0.1,0.1,0.1);
+	                obj.position.set(0,0,0);
+	                obj.rotation.set(0,-Math.PI/2,0)
+	                let ambientLight = new THREE.AmbientLight(0xffffff, 1);
+	                ambientLight.position.set(0,0,0);
+	                scene.add(ambientLight);
+	                scene.add(obj);
 
-function initSkyBox(){
-  var materialArray = [];
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_lf.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_rt.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_up.jpg')}));
-  materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
-}));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_ft.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_bk.jpg')
-  }));
+	                render();
+	            }
+	          );
+	        }
+	      );
 
-  for (var i = 0; i < 6; i++)
-     materialArray[i].side = THREE.BackSide;
-  var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-  var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
-  var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
-  scene.add( skybox );  
-}
+	    initCamera();
+	}
+	
+	function init() {
+	  scene = new THREE.Scene();
+	  initRenderer();
+	  initSkyBox();
+	  initScene();
+	  animate();
+	}
 
-function initScene() {
-  var material = new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('images/crate.jpg') });
-  var geometry = new THREE.CubeGeometry(50, 50, 50);
-  var cube = new THREE.Mesh(geometry, material);
-  cube.position.set(0, 25, 0);
+	function animate() {
+	  requestAnimationFrame(animate);
 
-  var cam = new THREE.PerspectiveCamera;
-  cam.position.z = 50;
-  
-  cube.add(cam);
-  scene.add(cube);
-}
+	  // Ship&Cam Rotation
+	  if (keyboard[38]) { // up arrow
+	  	camera.rotation.y -= Math.PI * 0.01;
+	  }
+	  if (keyboard[40]) { // down arrow
+	  	camera.rotation.y += Math.PI * 0.01;	
+	  }
+	  if (keyboard[37]) { // left arrow
+	  	camera.rotation.x += Math.PI * 0.01;
+	  }
+	  if (keyboard[39]) { // right arrow
+	  	camera.rotation.x -= Math.PI * 0.01;	
+	  }
+	  // Meteor Spawner
+	  // Game Over
 
-function init() {
-  scene = new THREE.Scene();
-  initRenderer();
-  initCamera();
-  initSkyBox();
-  initScene();
-}
+	  render();
+	}
+	
+	function update() {
+	}
+	
+	function render() {
+	  renderer.render(scene, camera);
+	}
 
-function animate() {
-  requestAnimationFrame(animate);
-  render();
-}
+	function keyDown(event){
+		keyboard[event.keyCode] = true;
+	}
+	function keyUp(event){
+		keyboard[event.keyCode] = false;
+	}
 
-function update() {
-
-}
-
-function render() {
-  renderer.render(scene, camera);
-}
+	window.addEventListener('keydown', keyDown);
+	window.addEventListener('keyup', keyUp);
     </script>
 </body>
-  
+
 </html>
