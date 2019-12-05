@@ -91,15 +91,20 @@
 	        }
 	      );
         
-        let ambientLight = new THREE.AmbientLight(0xffffff, .2);
+        let ambientLight = new THREE.AmbientLight(0x2222ff, .2);
         ambientLight.position.set(0,0,0);
         scene.add(ambientLight);
 
-       	let sun = new THREE.PointLight(0xffffff, 0.8, 18);
-       	sun.position.set(0,0,0);
+       	let sun = new THREE.PointLight(0xffffff, 10, 5000, 100);
+       	sun.position.set(0,100,0);
+
        	sun.castShadow = true;
+       	sun.shadow.mapSize.width = 5000;
+		sun.shadow.mapSize.height = 5000;
        	sun.shadow.camera.near = 0.1;
- 	    sun.shadow.camera.far = 10000;
+ 	    sun.shadow.camera.far = 5000;
+ 	    sun.shadow.camera.fov = 100;
+
         scene.add(sun);
 
 	    initCamera();
