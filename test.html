@@ -30,10 +30,10 @@
 	  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	  camera.position.set(100, 80, 0);
 	  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	  cameraControls.addEventListener("change", function() {
-	   camera.updateProjectionMatrix();
-	   render();
-	  });
+	  // cameraControls.addEventListener("change", function() {
+	   // camera.updateProjectionMatrix();
+	   // render();
+	  // });
 	}
 	
 	function initSkyBox(){
@@ -123,16 +123,16 @@
 
 	  // Ship&Cam Rotation
 	  if (keyboard[38]) { // up arrow
-	  	camera.rotation.y -= Math.PI * 0.01;
+	  	ship.rotation.y -= Math.PI * 0.01;
 	  }
 	  if (keyboard[40]) { // down arrow
-	  	camera.rotation.y += Math.PI * 0.01;	
+	  	ship.rotation.y += Math.PI * 0.01;	
 	  }
 	  if (keyboard[37]) { // left arrow
-	  	camera.rotation.x += Math.PI * 0.01;
+	  	ship.rotation.x += Math.PI * 0.01;
 	  }
 	  if (keyboard[39]) { // right arrow
-	  	camera.rotation.x -= Math.PI * 0.01;	
+	  	ship.rotation.x -= Math.PI * 0.01;	
 	  }
 
 	  // Meteor Spawner
