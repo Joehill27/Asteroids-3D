@@ -30,10 +30,15 @@
 	  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	  camera.position.set(100, 80, 0);
 	  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	  // cameraControls.addEventListener("change", function() {
-	   // camera.updateProjectionMatrix();
-	   // render();
-	  // });
+	  cameraControls.addEventListener("change", function() {
+	   camera.updateProjectionMatrix();
+	   ship.rotation.set(camera.rotation.x, camera.rotation.y, camera.rotation.z)
+	   ship.rotation.y = ship.rotation.y + Math.PI;
+	   ship.rotation.z = ship.rotation.z - Math.PI;
+	   console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
+	   
+	   render();
+	  });
 	}
 	
 	function initSkyBox(){
@@ -122,20 +127,22 @@
 	  requestAnimationFrame(animate);
 
 	  // Ship&Cam Rotation
-	  if (keyboard[38]) { // up arrow
-	  	ship.rotation.y -= Math.PI * 0.01;
+	  if (keyboard[74]) { // up arrow
+	  	ship.rotation.z -= Math.PI * 0.01;
 	  }
-	  if (keyboard[40]) { // down arrow
-	  	ship.rotation.y += Math.PI * 0.01;	
+	  if (keyboard[76]) { // down arrow
+	  	ship.rotation.z += Math.PI * 0.01;	
 	  }
-	  if (keyboard[37]) { // left arrow
-	  	ship.rotation.x += Math.PI * 0.01;
+	  if (keyboard[65]) { // left arrow
+	  	ship.rotation.y += Math.PI * 0.01;
 	  }
-	  if (keyboard[39]) { // right arrow
-	  	ship.rotation.x -= Math.PI * 0.01;	
+	  if (keyboard[68]) { // right arrow
+	  	ship.rotation.y -= Math.PI * 0.01;	
 	  }
 
 	  // Meteor Spawner
+
+
 	  // Game Over
 
 	  render();
