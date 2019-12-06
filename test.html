@@ -32,10 +32,8 @@
 	  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
 	  cameraControls.addEventListener("change", function() {
 	   camera.updateProjectionMatrix();
-	   ship.rotation.set(camera.rotation.x, camera.rotation.y, camera.rotation.z)
-	   ship.rotation.y = ship.rotation.y + Math.PI;
-	   ship.rotation.z = ship.rotation.z - Math.PI;
-	   console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
+	   ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, camera.rotation.z - Math.PI)
+	   // console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
 	   
 	   render();
 	  });
