@@ -14,7 +14,60 @@
 <body>
     <script type='text/javascript'>
     var scene, camera, renderer;
-    var keyboard = {}, ship;
+    var keyboard = {}, ship, asteroidArray = [];
+	var states = {
+		initState: 'initState',
+		playState: 'playState',
+		endGameState: 'endGameState'
+	}
+	var spawnPoints = [
+		{
+			positionX:'2400',
+			positionY:'2400',
+			positionZ:'2400'
+		},
+		{
+			positionX:'-2400',
+			positionY:'2400',
+			positionZ:'2400'
+		},
+		{
+			positionX:'2400',
+			positionY:'-2400',
+			positionZ:'2400'
+		},
+		{
+			positionX:'2400',
+			positionY:'2400',
+			positionZ:'-2400'
+		},
+		{
+			positionX:'-2400',
+			positionY:'-2400',
+			positionZ:'2400'
+		},
+		{
+			positionX:'2400',
+			positionY:'-2400',
+			positionZ:'-2400'
+		},
+		{
+			positionX:'-2400',
+			positionY:'2400',
+			positionZ:'-2400'
+		},
+		{
+			positionX:'-2400',
+			positionY:'-2400',
+			positionZ:'-2400'
+		}
+
+		
+		
+	]
+	var numAsteroids = 0;
+	var maxAsteroids = 5;
+	var currentState = states.initState;
 	
 	init();
 	
@@ -27,13 +80,16 @@
 	}
 	
 	function initCamera() {
-	  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
-	  camera.position.set(100, 80, 0);
-	  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	  cameraControls.addEventListener("change", function() {
-	   camera.updateProjectionMatrix();
-	   ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, camera.rotation.z - Math.PI)
-	   // console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
+		camera.position.set(100, 80, 0);
+		cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	  	cameraControls.addEventListener("change", function() {
+	   	camera.updateProjectionMatrix();
+	//    ship.rotation.set.x = camera.rotation.x;
+	//    ship.rotation.set.y = camera.rotation.y + Math.PI;
+	//    ship.rotation.set.z = Math.abs(camera.rotation.z);
+	  ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, Math.abs(camera.rotation.z))
+	//    console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
 	   
 	   render();
 	  });
@@ -111,6 +167,7 @@
         scene.add(sun);
 
 	    initCamera();
+		spawnAsteroid();
 	}
 	
 	function init() {
@@ -127,16 +184,45 @@
 	  // Ship&Cam Rotation
 	  if (keyboard[74]) { // up arrow
 	  	ship.rotation.z -= Math.PI * 0.01;
+	  	camera.rotation.z -= Math.PI * 0.01;
+
 	  }
 	  if (keyboard[76]) { // down arrow
-	  	ship.rotation.z += Math.PI * 0.01;	
+	  	ship.rotation.z += Math.PI * 0.01;
+	  	camera.rotation.z -= Math.PI * 0.01;
+
 	  }
 	  if (keyboard[65]) { // left arrow
 	  	ship.rotation.y += Math.PI * 0.01;
+	  	camera.rotation.z -= Math.PI * 0.01;
+
 	  }
 	  if (keyboard[68]) { // right arrow
 	  	ship.rotation.y -= Math.PI * 0.01;	
+	  	camera.rotation.z -= Math.PI * 0.01;
+
 	  }
+
+	  /*
+	  var keepLooping = true;
+	  while(keepLooping)
+	  {
+		switch(currentState)
+		{
+			case states.initState:
+				break;
+			case states.playState:
+				break;
+			case states.endGameState:
+				keepLooping = false;
+				break;
+			default:
+				console.log("Should not enter here");
+				break;
+		}
+
+	  }
+	  */
 
 	  // Meteor Spawner
 	  let gameover = false;
@@ -156,6 +242,38 @@
 	  // Game Over
 
 	  render();
+	}
+
+	//TODO choose random type when asteroid types are implemented
+	function spawnAsteroid()
+	{
+		let position = spawnPoints[Math.floor(Math.random() * 11)];
+		let material = new THREE.MeshStandardMaterial();
+	    let objLoader = new THREE.OBJLoader();
+	    let mtlLoader = new THREE.MTLLoader();
+		mtlLoader.setPath('./assets/');
+	        mtlLoader.load(
+	        "asteroid1.mtl",
+	        function (mtls){
+	          mtls.preload();
+	          objLoader.setMaterials(mtls);
+	          objLoader.setPath("./assets/");
+	          objLoader.load(
+	            "asteroid1.obj",
+	            function ( obj ) {
+	                obj.scale.set(0.1,0.1,0.1);
+	                obj.position.set(100,100,100);
+	                obj.rotation.set(0,-Math.PI/2,0)
+
+	                asteroid = obj;
+					asteroidArray[numAsteroids] = asteroid;
+					numAsteroids++;
+	                scene.add(asteroid);
+	                render();
+	            }
+	          );
+	        }
+	      );
 	}
 	
 	function update() {
