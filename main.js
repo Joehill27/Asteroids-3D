@@ -296,6 +296,13 @@ function CheckLaserBeam(){
 
 }
 
+// will remove astroidArray[a] from the array and scene
+function deathOfAnAstroid(a) {
+    let asteroid = asteroidArray[a];
+    scene.remove(asteroid);
+    asteroid[a] = null;
+}
+
 function AnimateLaser(){
     var object3d	= new THREE.Object3D()
     // generate the texture
