@@ -1,54 +1,57 @@
 var scene, camera, renderer;
-var keyboard = {}, ship, asteroidArray = [];
+var keyboard = {}, ship, laserBeam,asteroidArray = [];
+var numAsteroids = 0, maxAsteroids = 5;
+var elapsedTime, startingTime, laserEffectMilliseconds = 500, laserFireTime;
+var shipBoundingBox, asteroidBoundingBoxes = [];
+var cameraRotation;
+
 var states = {
     initState: 'initState',
     playState: 'playState',
     endGameState: 'endGameState'
 }
+var currentState = states.initState;
 var spawnPoints = [
     {
-        positionX:'2400',
-        positionY:'2400',
-        positionZ:'2400'
+        positionX:'3000',
+        positionY:'3000',
+        positionZ:'3000'
     },
     {
-        positionX:'-2400',
-        positionY:'2400',
-        positionZ:'2400'
+        positionX:'-3000',
+        positionY:'3000',
+        positionZ:'3000'
     },
     {
-        positionX:'2400',
-        positionY:'-2400',
-        positionZ:'2400'
+        positionX:'3000',
+        positionY:'-3000',
+        positionZ:'3000'
     },
     {
-        positionX:'2400',
-        positionY:'2400',
-        positionZ:'-2400'
+        positionX:'3000',
+        positionY:'3000',
+        positionZ:'-3000'
     },
     {
-        positionX:'-2400',
-        positionY:'-2400',
-        positionZ:'2400'
+        positionX:'-3000',
+        positionY:'-3000',
+        positionZ:'3000'
     },
     {
-        positionX:'2400',
-        positionY:'-2400',
-        positionZ:'-2400'
+        positionX:'3000',
+        positionY:'-3000',
+        positionZ:'-3000'
     },
     {
-        positionX:'-2400',
-        positionY:'2400',
-        positionZ:'-2400'
+        positionX:'-3000',
+        positionY:'3000',
+        positionZ:'-3000'
     },
     {
-        positionX:'-2400',
-        positionY:'-2400',
-        positionZ:'-2400'
+        positionX:'-3000',
+        positionY:'-3000',
+        positionZ:'-3000'
     }]
-var numAsteroids = 0;
-var maxAsteroids = 5;
-var currentState = states.initState;
 
 init();
 
@@ -63,16 +66,14 @@ function initRenderer() {
 function initCamera() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(100, 80, 0);
-    cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	cameraRotation = {x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z};
       cameraControls.addEventListener("change", function() {
-       camera.updateProjectionMatrix();
-//    ship.rotation.set.x = camera.rotation.x;
-//    ship.rotation.set.y = camera.rotation.y + Math.PI;
-//    ship.rotation.set.z = Math.abs(camera.rotation.z);
-  ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, Math.abs(camera.rotation.z))
-//    console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
-   
-   render();
+		camera.updateProjectionMatrix();
+		cameraRotation = {x: camera.rotation.x, y: camera.rotation.y + Math.PI, z:  Math.abs(camera.rotation.z)};
+		ship.lookAt(-camera.position.x,-camera.position.y,-camera.position.z)
+		shipBoundingBox.update();
+		render();
   });
 }
 
@@ -113,13 +114,18 @@ let material = new THREE.MeshStandardMaterial();
         mtls.preload();
         objLoader.setMaterials(mtls);
         objLoader.setPath("./assets/");
-        objLoader.load("Arc170.obj",function ( obj ) {
+        objLoader.load("Arc170.obj", function ( obj ) {
+			
             obj.scale.set(0.1,0.1,0.1);
             obj.position.set(0,0,0);
             obj.rotation.set(0,-Math.PI/2,0)
-            ship = obj;
-            scene.add(ship);
-
+			ship = obj;
+			
+			ship.name = "ship";
+			scene.add(ship);
+			shipBoundingBox = new THREE.BoundingBoxHelper( ship, 0xffff00 );
+			scene.add(shipBoundingBox);
+			
             render();
         });
     });
@@ -153,28 +159,32 @@ let material = new THREE.MeshStandardMaterial();
     scene.add(sun);
     scene.add(eart);
     initCamera();
-    spawnAsteroid();
+    initialAsteroid();
 }
 
 function init() {
-  scene = new THREE.Scene();
-  initRenderer();
-  initSkyBox();
-  initScene();
-  animate();
+    startingTime = new Date();
+    scene = new THREE.Scene();
+    initRenderer();
+    initSkyBox();
+    initScene();
+    animate();
 }
 
 var loop = new PhysicsLoop(60);
 
 loop.add(function(delta){
     MoveAsteroids();
+    UpdateTime();
+    if(laserBeam != null) CheckLaserBeam();
 });
 
 loop.start();
 
 // updates asteroid position
 function MoveAsteroids() {
-    // var asteroid = asteroidArray[0];
+	// var asteroid = asteroidArray[0];
+    var count = 0;
     asteroidArray.forEach(function(asteroid)
     {
         if (asteroid.position.x < 0) {
@@ -194,7 +204,10 @@ function MoveAsteroids() {
         } else {
             asteroid.position.z--;
         }
+        asteroidBoundingBoxes[count].update();
+        count++;
     })
+	
     render();
 }
 
@@ -203,70 +216,59 @@ function animate() {
 
   // Ship&Cam Rotation
   if(keyboard[32]) { //Space
-    console.log("Shoot laserz!");
-    var laserBeam	= new AnimateLaser();
-    laserBeam.position.set(0,0,0);
-    laserBeam.scale.set(1000, 10, 10);
-    scene.add(laserBeam);
-    scene.remove(laserBeam);
-  }
-
-  /*
-  var keepLooping = true;
-  while(keepLooping)
-  {
-    switch(currentState)
-    {
-        case states.initState:
-            break;
-        case states.playState:
-            break;
-        case states.endGameState:
-            keepLooping = false;
-            break;
-        default:
-            console.log("Should not enter here");
-            break;
+    
+    if(laserBeam == null) {
+        console.log("Shoot laserz!");
+        laserBeam	= new AnimateLaser();
+        laserBeam.position.set(0,0,0);
+        laserBeam.scale.set(1000, 10, 10);
+        laserBeam.lookAt(-camera.position.x, -camera.position.y + Math.PI/4, -camera.position.z);
+        laserFireTime = new Date();
+        console.log(laserFireTime);
+        scene.add(laserBeam);
     }
-
+    
   }
-  */
+}
 
-  // Meteor Spawner
-
-  // Game Over
-
-  render();
+function initialAsteroid()
+{
+    for(var i = 0; i < maxAsteroids; i++)
+    {
+        spawnAsteroid();
+    }
 }
 
 //TODO choose random type when asteroid types are implemented
 function spawnAsteroid()
 {
-    let material = new THREE.MeshStandardMaterial();
+    var asteroid;
     let objLoader = new THREE.OBJLoader();
     let mtlLoader = new THREE.MTLLoader();
-    while(numAsteroids < maxAsteroids) {
-        let position = spawnPoints[Math.floor(Math.random() * 8)];
-        mtlLoader.setPath('./assets/');
-        mtlLoader.load( "asteroid1.mtl", function (mtls){
-            mtls.preload();
-            objLoader.setMaterials(mtls);
-            objLoader.setPath("./assets/");
-        
-            objLoader.load("asteroid1.obj", function ( obj ) {
-                obj.scale.set(0.5,0.5,0.5);
-                obj.position.set(position.positionX,position.positionY,position.positionZ);
-                obj.rotation.set(0,-Math.PI/2,0)
+    let position = spawnPoints[Math.floor(Math.random() * 8)];
+    mtlLoader.setPath('./assets/');
+    mtlLoader.load( "asteroid1.mtl", function (mtls){
+        mtls.preload();
+        objLoader.setMaterials(mtls);
+        objLoader.setPath("./assets/");
+    
+        objLoader.load("asteroid1.obj", function ( obj ) {
+            obj.scale.set(0.5,0.5,0.5);
+            obj.position.set(position.positionX,position.positionY,position.positionZ);
+            obj.rotation.set(0,-Math.PI/2,0)
 
-                asteroid = obj;
-                asteroidArray[numAsteroids] = asteroid;
-                numAsteroids++;
-                scene.add(asteroid);
-                render();
-            });
+            asteroid = obj;
+            asteroid.name = "Asteroid" + numAsteroids + 1;
+            asteroidArray.push(asteroid);
+            var asteroidBoundingBox = new THREE.BoundingBoxHelper( asteroid, 0xffff00 );
+            scene.add(asteroidBoundingBox);
+            asteroidBoundingBoxes.push(asteroidBoundingBox);
+            scene.add(asteroid);
+            render();
         });
-        numAsteroids++;
-    }
+    });
+    numAsteroids++;
+    return asteroid;
 }
 
 function update() {
@@ -281,6 +283,17 @@ function keyDown(event){
 }
 function keyUp(event){
     keyboard[event.keyCode] = false;
+}
+
+function CheckLaserBeam(){
+    var now = new Date().getTime();
+    var elapsedSinceLaserFire = now - laserFireTime;
+    if(elapsedSinceLaserFire > laserEffectMilliseconds){
+        console.log("Getting rid of laser");
+        scene.remove(laserBeam);
+        laserBeam = null;
+    }
+
 }
 
 function AnimateLaser(){
@@ -325,8 +338,12 @@ function AnimateLaser(){
         context.fillStyle	= gradient;
         context.fillRect(0,0, canvas.width, canvas.height);
         // return the just built canvas 
-        return canvas;	
+        return canvas;
     }
+}
+
+function UpdateTime(){
+    elapsedTime = new Date() - startingTime;
 }
 
 window.addEventListener('keydown', keyDown);
