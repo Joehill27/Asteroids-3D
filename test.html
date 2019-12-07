@@ -80,11 +80,10 @@ function initCamera() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(100, 80, 0);
     cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-      cameraControls.addEventListener("change", function() {
-       camera.updateProjectionMatrix();
-//   ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, Math.abs(camera.rotation.z))
+    cameraControls.addEventListener("change", function() {
+    	camera.updateProjectionMatrix();
 		ship.lookAt(-camera.position.x,-camera.position.y,-camera.position.z)
-render();
+	render();
   });
 }
 
@@ -126,7 +125,7 @@ let material = new THREE.MeshStandardMaterial();
         objLoader.setMaterials(mtls);
         objLoader.setPath("./assets/");
         objLoader.load("Arc170.obj",function ( obj ) {
-            obj.scale.set(0.05,0.05,0.05);
+            obj.scale.set(0.025,0.025,0.025);
             obj.position.set(0,0,0);
             obj.rotation.set(0,-Math.PI/2,0);
 			obj.castShadow = true;
@@ -144,25 +143,25 @@ let material = new THREE.MeshStandardMaterial();
 
     let sun = new THREE.PointLight(0xffffff, 10, 5000, 2);
     sun.position.set(0,2500,0);
-    sun.angle = Math.PI /2;
+    sun.lookAt(0,0,0);
     
     sun.castShadow = true;
     sun.shadow.mapSize.width = 512;
     sun.shadow.mapSize.height = 512;
-    sun.shadow.camera.near = 0.1;
+    sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 5000;
-    sun.shadow.camera.fov = 100000;
+    sun.shadow.camera.fov = 100;
 
     let eart = new THREE.PointLight(0x1111ee, 2.5, 5000, 2);
     eart.position.set(0,0,2500);
-    eart.angle = Math.PI /2;
+    eart.lookAt(0,0,0);
     
     eart.castShadow = true;
-    eart.shadow.mapSize.width = 5000;
-    eart.shadow.mapSize.height = 5000;
-    eart.shadow.camera.near = 0.1;
+    eart.shadow.mapSize.width = 512;
+    eart.shadow.mapSize.height = 512;
+    eart.shadow.camera.near = 0.5;
     eart.shadow.camera.far = 5000;
-    eart.shadow.camera.fov = 100000;
+    eart.shadow.camera.fov = 100;
     
     scene.add(sun);
     scene.add(eart);
