@@ -45,8 +45,7 @@ var spawnPoints = [
         positionX:'-2400',
         positionY:'-2400',
         positionZ:'-2400'
-    } 
-]
+    }]
 var numAsteroids = 0;
 var maxAsteroids = 5;
 var currentState = states.initState;
@@ -54,82 +53,115 @@ var currentState = states.initState;
 init();
 
 function initRenderer() {
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize ( window.innerWidth, window.innerHeight );
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.BasicShadowMap;
-    document.body.appendChild( renderer.domElement );
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize ( window.innerWidth, window.innerHeight );
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
+  document.body.appendChild( renderer.domElement );
 }
 
 function initCamera() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(100, 80, 0);
     cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-    cameraControls.addEventListener("change", function() {
-    camera.updateProjectionMatrix();
-    ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, Math.abs(camera.rotation.z))
-
-    render();
-    });
+      cameraControls.addEventListener("change", function() {
+       camera.updateProjectionMatrix();
+//    ship.rotation.set.x = camera.rotation.x;
+//    ship.rotation.set.y = camera.rotation.y + Math.PI;
+//    ship.rotation.set.z = Math.abs(camera.rotation.z);
+  ship.rotation.set(camera.rotation.x, camera.rotation.y + Math.PI, Math.abs(camera.rotation.z))
+//    console.log(ship.rotation.x, ship.rotation.y, ship.rotation.z);
+   
+   render();
+  });
 }
 
 function initSkyBox(){
-    var materialArray = [];
-    materialArray.push(new THREE.MeshBasicMaterial({
+  var materialArray = [];
+  materialArray.push(new THREE.MeshBasicMaterial({
     map: THREE.ImageUtils.loadTexture('images/cwd_lf.jpg')
-    }));
-    materialArray.push(new THREE.MeshBasicMaterial({
+  }));
+  materialArray.push(new THREE.MeshBasicMaterial({
     map: THREE.ImageUtils.loadTexture('images/cwd_rt.jpg')
-    }));
-    materialArray.push(new THREE.MeshBasicMaterial({
+  }));
+  materialArray.push(new THREE.MeshBasicMaterial({
     map: THREE.ImageUtils.loadTexture('images/cwd_up.jpg')}));
-    materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
+  materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
 }));
-    materialArray.push(new THREE.MeshBasicMaterial({
+  materialArray.push(new THREE.MeshBasicMaterial({
     map: THREE.ImageUtils.loadTexture('images/cwd_ft.jpg')
-    }));
-    materialArray.push(new THREE.MeshBasicMaterial({
+  }));
+  materialArray.push(new THREE.MeshBasicMaterial({
     map: THREE.ImageUtils.loadTexture('images/cwd_bk.jpg')
-    }));
+  }));
 
-    for (var i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
+  for (var i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
 
-    var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-    var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
-    var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
-    scene.add( skybox );
+  var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
+  var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
+  var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+  scene.add( skybox );
 }
 
 function initScene() {
-    let material = new THREE.MeshStandardMaterial();
-    ship = loadObj('./assets/', "Arc170l");
-    ship.position.set(0,0,0);
-    render();
+let material = new THREE.MeshStandardMaterial();
+    let objLoader = new THREE.OBJLoader();
+    let mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.setPath('./assets/');
+    mtlLoader.load("Arc170.mtl",function (mtls){
+        mtls.preload();
+        objLoader.setMaterials(mtls);
+        objLoader.setPath("./assets/");
+        objLoader.load("Arc170.obj",function ( obj ) {
+            obj.scale.set(0.1,0.1,0.1);
+            obj.position.set(0,0,0);
+            obj.rotation.set(0,-Math.PI/2,0)
+            ship = obj;
+            scene.add(ship);
+
+            render();
+        });
+    });
     
-    let ambientLight = new THREE.AmbientLight(0x2222ff, .2);
+    let ambientLight = new THREE.AmbientLight(0xffffff, .1);
+    ambientLight.position.set(0,0,0);
     scene.add(ambientLight);
 
-    let sun = new THREE.PointLight(0xffffff, 10, 5000, 100);
-    sun.position.set(0,100,0);
-
+    let sun = new THREE.PointLight(0xffffff, 10, 5000, 2);
+    sun.position.set(0,2500,0);
+    sun.angle = Math.PI /2;
+    
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 5000;
-    sun.shadow.mapSize.height = 5000;
+    sun.shadow.mapSize.width = 2500;
+    sun.shadow.mapSize.height = 2500;
     sun.shadow.camera.near = 0.1;
     sun.shadow.camera.far = 5000;
-    sun.shadow.camera.fov = 100;
+    sun.shadow.camera.fov = 100000;
 
+    let eart = new THREE.PointLight(0x1111ee, 2.5, 5000, 2);
+    eart.position.set(0,0,2500);
+    eart.angle = Math.PI /2;
+    
+    eart.castShadow = true;
+    eart.shadow.mapSize.width = 5000;
+    eart.shadow.mapSize.height = 5000;
+    eart.shadow.camera.near = 0.1;
+    eart.shadow.camera.far = 5000;
+    eart.shadow.camera.fov = 100000;
+    
     scene.add(sun);
+    scene.add(eart);
     initCamera();
     spawnAsteroid();
 }
 
 function init() {
-    scene = new THREE.Scene();
-    initRenderer();
-    initSkyBox();
-    initScene();
-    animate();
+  scene = new THREE.Scene();
+  initRenderer();
+  initSkyBox();
+  initScene();
+  animate();
 }
 
 var loop = new PhysicsLoop(60);
@@ -167,22 +199,22 @@ function MoveAsteroids() {
 }
 
 function animate() {
-    requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 
-    // Keybinding
-    if(keyboard[32]) { //Space
+  // Ship&Cam Rotation
+  if(keyboard[32]) { //Space
     console.log("Shoot laserz!");
     var laserBeam	= new AnimateLaser();
     laserBeam.position.set(0,0,0);
     laserBeam.scale.set(1000, 10, 10);
     scene.add(laserBeam);
     scene.remove(laserBeam);
-    }
+  }
 
-    /*
-    var keepLooping = true;
-    while(keepLooping)
-    {
+  /*
+  var keepLooping = true;
+  while(keepLooping)
+  {
     switch(currentState)
     {
         case states.initState:
@@ -197,24 +229,51 @@ function animate() {
             break;
     }
 
-    }
-    */
+  }
+  */
 
-    // Meteor Spawner
+  // Meteor Spawner
 
-    // Game Over
+  // Game Over
 
-    render();
+  render();
 }
 
 //TODO choose random type when asteroid types are implemented
-function spawnAsteroid() {
-    let position = spawnPoints[Math.floor(Math.random() * 11)];
-    let astroid = loadObj('./assets/', "asteroid1");
+function spawnAsteroid()
+{
+    let material = new THREE.MeshStandardMaterial();
+    let objLoader = new THREE.OBJLoader();
+    let mtlLoader = new THREE.MTLLoader();
+    while(numAsteroids < maxAsteroids) {
+        let position = spawnPoints[Math.floor(Math.random() * 8)];
+        mtlLoader.setPath('./assets/');
+        mtlLoader.load( "asteroid1.mtl", function (mtls){
+            mtls.preload();
+            objLoader.setMaterials(mtls);
+            objLoader.setPath("./assets/");
+        
+            objLoader.load("asteroid1.obj", function ( obj ) {
+                obj.scale.set(0.5,0.5,0.5);
+                obj.position.set(position.positionX,position.positionY,position.positionZ);
+                obj.rotation.set(0,-Math.PI/2,0)
+
+                asteroid = obj;
+                asteroidArray[numAsteroids] = asteroid;
+                numAsteroids++;
+                scene.add(asteroid);
+                render();
+            });
+        });
+        numAsteroids++;
+    }
+}
+
+function update() {
 }
 
 function render() {
-    renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 
 function keyDown(event){
@@ -241,7 +300,7 @@ function AnimateLaser(){
     })
     var geometry	= new THREE.PlaneGeometry(1, 0.1)
     var nPlanes	= 16;
-    for(var i = 0; i < nPlanes; i++){
+    for (var i = 0; i < nPlanes; i++){
         var mesh	= new THREE.Mesh(geometry, material)
         mesh.position.x	= 1/2
         mesh.rotation.x	= i/nPlanes * Math.PI
