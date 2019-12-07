@@ -4,84 +4,15 @@
     <meta charset='utf-8' />
     <title>Asteroids 3D</title>
     
-        <script src='./cannon.js'></script>
+    <script src='./cannon.js'></script>
     <script src='https://threejs.org/build/three.min.js'></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
     <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
-	<script  src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+    <script  src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+    <script src="./js/Loop.js"></script>
+    <script src="./util.js"></script>
 </head>
 <body>
-    <script type='text/javascript'>
-      var scene, camera, renderer;
-
-init();
-animate();
-
-function initRenderer() {
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize ( window.innerWidth, window.innerHeight );
-  document.body.appendChild( renderer.domElement );
-}
-function initSkyBox(){
-  var materialArray = [];
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_lf.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_rt.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_up.jpg')}));
-  materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
-}));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_ft.jpg')
-  }));
-  materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_bk.jpg')
-  }));
-  for (var i = 0; i < 6; i++)
-     materialArray[i].side = THREE.BackSide;
-  var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-  var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
-  var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
-  scene.add( skybox );  
-}
-
-function initScene() {
-  var material = new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('images/crate.jpg') });
-  var geometry = new THREE.CubeGeometry(50, 50, 50);
-  var cube = new THREE.Mesh(geometry, material);
-  cube.position.set(0, 25, 0);
-
-  var cam = new THREE.PerspectiveCamera;
-  cam.position.z = 50;
-  
-  cube.add(cam);
-  scene.add(cube);
-}
-
-function init() {
-  scene = new THREE.Scene();
-  initRenderer();
-  initCamera();
-  initSkyBox();
-  initScene();
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  render();
-}
-
-function update() {
-
-}
-
-function render() {
-  renderer.render(scene, camera);
-}
-    </script>
+    <script src="./main.js"></script>
 </body>
-  
 </html>
