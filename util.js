@@ -16,3 +16,12 @@ function loadObj( path, name) {
     });
     return obj;
 }
+
+function checkSphereOverlap(sphere1Radius, sphere1Center, sphere2Radius, sphere2Center)
+{
+    var distance = Math.sqrt((sphere1Center.x - sphere2Center.x) * (sphere1Center.x - sphere2Center.x) +
+    (sphere1Center.y - sphere2Center.y) * (sphere1Center.y - sphere2Center.y) +
+    (sphere1Center.z - sphere2Center.z) * (sphere1Center.z - sphere2Center.z));
+
+    return distance < (sphere1Radius + sphere2Radius)
+}
