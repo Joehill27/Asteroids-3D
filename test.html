@@ -192,15 +192,17 @@ function MoveAsteroids() {
     {
         if (asteroid.position.x < 0) {
             asteroid.position.x++;
+            asteroid.rotation.x+=.005;
         } else {
             asteroid.position.x--;
+            asteroid.rotation.x+=.005;
         }
 
         if (asteroid.position.y < 0) {
             asteroid.position.y++;
         } else {
             asteroid.position.y--;
-        }
+}
 
         if (asteroid.position.z < 0) {
             asteroid.position.z++;

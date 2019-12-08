@@ -153,25 +153,25 @@ let material = new THREE.MeshStandardMaterial();
 
     let sun = new THREE.PointLight(0xffffff, 10, 5000, 2);
     sun.position.set(0,2500,0);
-    sun.angle = Math.PI /2;
+    sun.lookAt(0,0,0);
     
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 2500;
-    sun.shadow.mapSize.height = 2500;
-    sun.shadow.camera.near = 0.1;
+    sun.shadow.mapSize.width = 512;
+    sun.shadow.mapSize.height = 512;
+    sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 5000;
-    sun.shadow.camera.fov = 100000;
+    sun.shadow.camera.fov = 100;
 
     let eart = new THREE.PointLight(0x1111ee, 2.5, 5000, 2);
     eart.position.set(0,0,2500);
-    eart.angle = Math.PI /2;
+    eart.lookAt(0,0,0);
     
     eart.castShadow = true;
-    eart.shadow.mapSize.width = 5000;
-    eart.shadow.mapSize.height = 5000;
-    eart.shadow.camera.near = 0.1;
+    eart.shadow.mapSize.width = 512;
+    eart.shadow.mapSize.height = 512;
+    eart.shadow.camera.near = 0.5;
     eart.shadow.camera.far = 5000;
-    eart.shadow.camera.fov = 100000;
+    eart.shadow.camera.fov = 100;
     
     scene.add(sun);
     scene.add(eart);
@@ -198,8 +198,10 @@ function MoveAsteroids() {
     {
         if (asteroid.position.x < 0) {
             asteroid.position.x++;
+            asteroid.rotation.x+=.005;
         } else {
             asteroid.position.x--;
+            asteroid.rotation.x+=.005;
         }
 
         if (asteroid.position.y < 0) {
