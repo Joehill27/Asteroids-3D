@@ -1,6 +1,6 @@
 let WIDTH, HEIGHT;
 let keyboard = {};
-let scene, camera, renderer, ship, laserBeam, laserLight, asteroidArray = [];
+let scene, camera, renderer, ship, laserBeam, laserLight, asteroidArray = [], hearts = [];
 let elapsedTime, startingTime, laserFireTime;
 
 let shipBoundingBoxHelper, asteroidBoundingBoxesHelper = [], asteroidBoundingBoxes = [];
@@ -10,12 +10,10 @@ let numAsteroids = 0;
 let shipLives = 3;
 let score = 0;
 
-var hearts = [];
-
 // crosshair init
 var vert_geo = new THREE.PlaneGeometry( .5, 2, 0.1 );
 var hor_geo = new THREE.PlaneGeometry( 2, .5, 0.1 );
-planeMaterial = new THREE.MeshBasicMaterial( {color: 0xCCCF11, side: THREE.DoubleSide} );
+var planeMaterial = new THREE.MeshBasicMaterial( {color: 0xCCCF11, side: THREE.DoubleSide} );
 var cross_hair_up = new THREE.Mesh( vert_geo, planeMaterial );
 var cross_hair_down = new THREE.Mesh( vert_geo, planeMaterial );
 var cross_hair_left = new THREE.Mesh( hor_geo, planeMaterial );
@@ -261,7 +259,7 @@ function initScene() {
 
     var lensflare = new THREE.Lensflare();
 
-    lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1750, 0, new THREE.Color(0xFFC733)) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1500, 0, new THREE.Color(0xFFC733)) );
     lensflare.addElement( new THREE.LensflareElement( textureFlare1, 512, 0 ) );
     lensflare.addElement( new THREE.LensflareElement( textureFlare2, 60, 0.3 ) );
 
@@ -324,32 +322,31 @@ function initHearts() {
 function GameOver() {
     var loader = new THREE.FontLoader();
 
-    loader.load('./assets/helvetiker_bold.typeface.json', function ( font ) {
+    loader.load('./assets/helvetiker_regular.typeface.json', function ( font ) {
 
     var color = new THREE.Color(0xFD0000);
 
     var matLite = new THREE.MeshBasicMaterial( {
         color: color,
-        transparent: true,
-        opacity: 0.4,
+        transparent: false,
+        opacity: 0.1,
     });
 
 	var geometry = new THREE.TextGeometry( 'GAME OVER', {
 		font: font,
 		size: 20,
-		height: 5,
+        height: 5,
+        curveSegments: 20
     });
     
     var text = new THREE.Mesh( geometry, matLite );
-    text.position.set(-100, 0, 0);
-    // text.rotation.copy(camera.rotation);
+    text.rotation.copy(camera.rotation);
+    text.position.copy(camera.position);
     text.updateMatrix();
-    // text.translateX(500);
+    text.translateX(-90);
     // text.translateY(0);
-    // text.translateZ(150);
-    camera.lookAt(text.position);
-    camera.rotateX(Math.PI/2);
-    scene.add( text );
+    text.translateZ(-170);
+    scene.add(text);
     render();
     });
 }
@@ -391,13 +388,13 @@ function InitHud() {
        hearts[i].onBeforeRender = function( renderer ) { renderer.clearDepth(); };
      }
  
-     hearts[0].position.copy( camera.position );
-     hearts[0].rotation.copy( camera.rotation );
-     hearts[0].updateMatrix();
-     hearts[0].translateX( 100 );
-     hearts[0].translateY( -50 );
-     hearts[0].translateZ( - 80 );
-     hearts[0].rotateX(-Math.PI/2);
+     hearts[2].position.copy( camera.position );
+     hearts[2].rotation.copy( camera.rotation );
+     hearts[2].updateMatrix();
+     hearts[2].translateX( 100 );
+     hearts[2].translateY( -50 );
+     hearts[2].translateZ( - 80 );
+     hearts[2].rotateX(-Math.PI/2);
  
      hearts[1].position.copy( camera.position );
      hearts[1].rotation.copy( camera.rotation );
@@ -407,13 +404,13 @@ function InitHud() {
      hearts[1].translateZ( -80 );
      hearts[1].rotateX(-Math.PI/2);
  
-     hearts[2].position.copy( camera.position );
-     hearts[2].rotation.copy( camera.rotation );
-     hearts[2].updateMatrix();
-     hearts[2].translateX( 70 );
-     hearts[2].translateY( -50 );
-     hearts[2].translateZ( -80 );
-     hearts[2].rotateX(-Math.PI/2);
+     hearts[0].position.copy( camera.position );
+     hearts[0].rotation.copy( camera.rotation );
+     hearts[0].updateMatrix();
+     hearts[0].translateX( 70 );
+     hearts[0].translateY( -50 );
+     hearts[0].translateZ( -80 );
+     hearts[0].rotateX(-Math.PI/2);
 }
 
     /*           */
@@ -677,10 +674,17 @@ function DeathOfAnAstroid(a) {
     /*                */
 
 function UpdateShipHealth() {
+    let numHearts = shipLives - 1;
+    let heart = hearts[numHearts];
+    scene.remove(heart);
     shipLives--;
     if(shipLives == 0) {
         console.log("Game Over!");
         currentState = GAMESTATES.endGameState;
+        scene.remove(cross_hair_down);
+        scene.remove(cross_hair_up);
+        scene.remove(cross_hair_left);
+        scene.remove(cross_hair_right);
     }
 }
 
