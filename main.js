@@ -1,13 +1,86 @@
-var WIDTH, HEIGHT;
-var keyboard = {};
-var scene, camera, renderer, ship, laserBeam, laserLight,asteroidArray = [];
-var elapsedTime, startingTime, laserFireTime;
+let WIDTH, HEIGHT;
+let keyboard = {};
+let scene, camera, renderer, ship, laserBeam, laserLight, asteroidArray = [];
+let elapsedTime, startingTime, laserFireTime;
 
-var shipBoundingBoxHelper, asteroidBoundingBoxesHelper = [], asteroidBoundingBoxes = [];
-var laserBoundingBoxHelper, laserBoundingBox, shipBoundingBox;
-var currentState;
-var numAsteroids = 0;
-var shipLives = 3;
+let shipBoundingBoxHelper, asteroidBoundingBoxesHelper = [], asteroidBoundingBoxes = [];
+let laserBoundingBoxHelper, laserBoundingBox, shipBoundingBox;
+let currentState;
+let numAsteroids = 0;
+let shipLives = 3;
+let score = 0;
+
+var hearts = [];
+
+// crosshair init
+var vert_geo = new THREE.PlaneGeometry( .5, 2, 0.1 );
+var hor_geo = new THREE.PlaneGeometry( 2, .5, 0.1 );
+planeMaterial = new THREE.MeshBasicMaterial( {color: 0xCCCF11, side: THREE.DoubleSide} );
+var cross_hair_up = new THREE.Mesh( vert_geo, planeMaterial );
+var cross_hair_down = new THREE.Mesh( vert_geo, planeMaterial );
+var cross_hair_left = new THREE.Mesh( hor_geo, planeMaterial );
+var cross_hair_right = new THREE.Mesh( hor_geo, planeMaterial );
+
+// Keeps the crosshair in always on screen
+cross_hair_up.renderOrder = 999;
+cross_hair_up.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+cross_hair_down.renderOrder = 999;
+cross_hair_down.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+cross_hair_left.renderOrder = 999;
+cross_hair_left.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+cross_hair_right.renderOrder = 999;
+cross_hair_right.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+
+//////////////settings/////////
+var movementSpeed = 80;
+var totalObjects = 1000;
+var objectSize = 100;
+var sizeRandomness = 4000;
+var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
+/////////////////////////////////
+var dirs = [];
+var parts = [];
+
+function ExplodeAnimation(x, y, z)
+{
+  var geometry = new THREE.Geometry();
+  
+  for (var i = 0; i < totalObjects; i ++) 
+  {
+    var vertex = new THREE.Vector3();
+    vertex.x = x;
+    vertex.y = y;
+    vertex.z = z;
+  
+    geometry.vertices.push( vertex );
+    dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
+  }
+  var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+  var particles = new THREE.ParticleSystem( geometry, material );
+  
+  this.object = particles;
+  this.status = true;
+  
+  this.xDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+  this.yDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+  this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+  
+  scene.add( this.object  ); 
+  
+  this.update = function(){
+    if (this.status == true){
+      var pCount = totalObjects;
+      while(pCount--) {
+        var particle =  this.object.geometry.vertices[pCount]
+        particle.y += dirs[pCount].y;
+        particle.x += dirs[pCount].x;
+        particle.z += dirs[pCount].z;
+      }
+      this.object.geometry.verticesNeedUpdate = true;
+    }
+  }
+  
+}
 
     /*           */
     /* Constants */
@@ -100,7 +173,7 @@ function initCamera() {
         if(shipBoundingBoxHelper != null) {
             shipBoundingBoxHelper.update();
         }
-		
+        InitHud();
 		render();
   });
 }
@@ -136,6 +209,9 @@ function initSkyBox(){
 function initScene() {
     let objLoader = new THREE.OBJLoader();
     let mtlLoader = new THREE.MTLLoader();
+    initHearts();
+    initCamera();
+    
 
     mtlLoader.setPath('./assets/');
     mtlLoader.load("Arc170.mtl",function (mtls){
@@ -166,7 +242,7 @@ function initScene() {
     scene.add(ambientLight);
 
     let sun = new THREE.PointLight(0xffffff, 2, 0, 2);
-    sun.position.set(0,2500,0);
+    sun.position.set(-500,2500,-125);
     sun.angle = (Math.PI / 2);
     sun.lookAt(0,0,0);
     
@@ -176,6 +252,20 @@ function initScene() {
     sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 5000;
     sun.shadow.camera.fov = 100;
+
+    var textureLoader = new THREE.TextureLoader();
+
+    var textureFlare0 = textureLoader.load( "/assets/lensflare0.png" );
+    var textureFlare1 = textureLoader.load( "/assets/lensflare2.png" );
+    var textureFlare2 = textureLoader.load( "/assets/lensflare3.png" );
+
+    var lensflare = new THREE.Lensflare();
+
+    lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1750, 0, new THREE.Color(0xFFC733)) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare1, 512, 0 ) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare2, 60, 0.3 ) );
+
+    sun.add(lensflare);
 
     let eart = new THREE.PointLight(0x1111ee, .5, 0, 2);
     eart.position.set(0,0,2500);
@@ -190,13 +280,140 @@ function initScene() {
     
     scene.add(sun);
     scene.add(eart);
-    initCamera();
+    
+    cross_hair_up.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+    cross_hair_down.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+    cross_hair_left.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+    cross_hair_right.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+
+    scene.add( cross_hair_up );
+    scene.add( cross_hair_down );
+    scene.add( cross_hair_left );
+    scene.add( cross_hair_right );
 
     laserLight = new THREE.SpotLight(0xff0000, 1, 0, 2);
     laserLight.position.set(0,0,0);
     laserLight.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
 
     initialAsteroid();
+}
+
+function initHearts() {
+    for (var i=0; i<3; i++ ) {
+      let material = new THREE.MeshBasicMaterial();
+      let objLoader = new THREE.OBJLoader();
+      let mtlLoader = new THREE.MTLLoader();
+  
+      mtlLoader.setPath('./assets/');
+      mtlLoader.load("12190_Heart_v1_L3.mtl",function (mtls){
+          mtls.preload();
+          objLoader.setMaterials(mtls);
+          objLoader.setPath("./assets/");
+          objLoader.load("12190_Heart_v1_L3.obj",function ( obj ) {
+              obj.scale.set(.5,.5,.5);
+              obj.castShadow = false;
+              obj.receiveShadow = false;
+              scene.add(obj);
+              hearts.push(obj);
+          });
+      });
+    }
+  
+  }
+
+function GameOver() {
+    var loader = new THREE.FontLoader();
+
+    loader.load('./assets/helvetiker_bold.typeface.json', function ( font ) {
+
+    var color = new THREE.Color(0xFD0000);
+
+    var matLite = new THREE.MeshBasicMaterial( {
+        color: color,
+        transparent: true,
+        opacity: 0.4,
+    });
+
+	var geometry = new THREE.TextGeometry( 'GAME OVER', {
+		font: font,
+		size: 20,
+		height: 5,
+    });
+    
+    var text = new THREE.Mesh( geometry, matLite );
+    text.position.set(-100, 0, 0);
+    // text.rotation.copy(camera.rotation);
+    text.updateMatrix();
+    // text.translateX(500);
+    // text.translateY(0);
+    // text.translateZ(150);
+    camera.lookAt(text.position);
+    camera.rotateX(Math.PI/2);
+    scene.add( text );
+    render();
+    });
+}
+
+function InitHud() {
+     // keeps crosshair always in the center
+     cross_hair_up.position.copy( camera.position );
+     cross_hair_up.rotation.copy( camera.rotation );
+     cross_hair_up.updateMatrix();
+     cross_hair_up.translateX( 0 );
+     cross_hair_up.translateY( 35 );
+     cross_hair_up.translateZ( - 80 );
+ 
+     cross_hair_down.position.copy( camera.position );
+     cross_hair_down.rotation.copy( camera.rotation );
+     cross_hair_down.updateMatrix();
+     cross_hair_down.translateX( 0 );
+     cross_hair_down.translateY( 29 );
+     cross_hair_down.translateZ( - 80 );
+ 
+     cross_hair_left.position.copy( camera.position );
+     cross_hair_left.rotation.copy( camera.rotation );
+     cross_hair_left.updateMatrix();
+     cross_hair_left.translateX( -3 );
+     cross_hair_left.translateY( 32 );
+     cross_hair_left.translateZ( - 80 );
+ 
+     cross_hair_right.position.copy(camera.position );
+     cross_hair_right.rotation.copy( camera.rotation );
+     cross_hair_right.updateMatrix();
+     cross_hair_right.translateX( 3 );
+     cross_hair_right.translateY( 32 );
+     cross_hair_right.translateZ( - 80 );
+ 
+     // hearts
+     // makes sure hearts are always showing
+     for(var i = 0; i<3; i++){
+       hearts[i].renderOrder = 999;
+       hearts[i].onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+     }
+ 
+     hearts[0].position.copy( camera.position );
+     hearts[0].rotation.copy( camera.rotation );
+     hearts[0].updateMatrix();
+     hearts[0].translateX( 100 );
+     hearts[0].translateY( -50 );
+     hearts[0].translateZ( - 80 );
+     hearts[0].rotateX(-Math.PI/2);
+ 
+     hearts[1].position.copy( camera.position );
+     hearts[1].rotation.copy( camera.rotation );
+     hearts[1].updateMatrix();
+     hearts[1].translateX( 85 );
+     hearts[1].translateY( -50 );
+     hearts[1].translateZ( -80 );
+     hearts[1].rotateX(-Math.PI/2);
+ 
+     hearts[2].position.copy( camera.position );
+     hearts[2].rotation.copy( camera.rotation );
+     hearts[2].updateMatrix();
+     hearts[2].translateX( 70 );
+     hearts[2].translateY( -50 );
+     hearts[2].translateZ( -80 );
+     hearts[2].rotateX(-Math.PI/2);
 }
 
     /*           */
@@ -224,10 +441,12 @@ loop.add(function(delta) {
 
         case GAMESTATES.endGameState:
             DestroyAllAsteroids();
+            ShipDestruction();
+            GameOver();
+            render();
+            loop.stop();
             break;
     }
-    
-    
     
 });
 
@@ -443,12 +662,14 @@ function DestroyAllAsteroids() {
 // will remove astroidArray[a] from the array and scene
 function DeathOfAnAstroid(a) {
     let asteroid = asteroidArray[a];
+    // parts.push(new ExplodeAnimation(asteroid.position.x, asteroid.position.y, asteroid.position.z));
     let position = SPAWNPOINTS[Math.floor(Math.random() * 8)];
     asteroid.position.set(position.positionX, position.positionY, position.positionZ);
     if(SHOWBOUNDINGBOXES) {
         let asteroidBoundingBoxHelper = asteroidBoundingBoxesHelper[a];
         asteroidBoundingBoxHelper.setFromObject(asteroid);
     }
+    score++;
 }
 
     /*                */
@@ -460,12 +681,12 @@ function UpdateShipHealth() {
     if(shipLives == 0) {
         console.log("Game Over!");
         currentState = GAMESTATES.endGameState;
-        ShipDestruction();
     }
 }
 
 function ShipDestruction() {
     scene.remove(ship);
+    // parts.push(new ExplodeAnimation(0, 0, 0));
     if(SHOWBOUNDINGBOXES) {
         scene.remove(shipBoundingBoxHelper);
     }
@@ -514,7 +735,6 @@ function addEventListeners() {
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
 }
-
 
 //Start the Game!
 init();
