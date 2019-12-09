@@ -7,16 +7,16 @@ To demonstrate the use of Three.js, WebGL, cannon.js, raytracing, realistic coll
  
 Resources
 Libraries that we initially plan to use are Three.js, WebGL, and cannon.js.
-3D Objects assets such as the spaceship, asteroids, and the environment will be obtained from https://free3d.com/ and https://itch.io/.
-Sounds effects will be obtained from https://opengameart.org/ and http://soundbible.com/.
+3D Objects assets such as the spaceship, asteroids, and the environment will be obtained from https://free3d.com/
  
 Plan Outline
-The ship will be at the center of a three dimensional skybox that will be comprised of a space environment.
-Asteroids will be moving towards the ship with different movement behaviors, such as zig-zag, spiraling, and a direct path. 
+The ship is at the center of a three dimensional skybox that will be comprised of a space environment.
+Asteroids move towards the ship with a slight rotation;
 There will be lighting effects from a simulated space environment, such as sunlight or surrounding planets. 
-The spaceship will be controlled by mouse and keypress events, with shooting being mouse click, and rotation using the keys ‘W’, ‘A’, ‘S’, and ‘D’.
+Spaceship rotation is controlled by left clicking on the mouse and moving the mouse around.
+Laser shooting is controlled by the space key.
 The camera will be attached to the ship object. The camera will move according to where the players points their cursor. The field of view will be limited such that the player needs to turn in order to see objects directly behind them, below them, to their sides or on top of them.
-The heads-up display will display the map, score, and health bar. The map will be displayed as a radar-style map display. It gives players an idea about where to look relative to their view to defend against asteroids approaching.
+The heads-up display will display the score and health bar. 
 
 Contributions
 
