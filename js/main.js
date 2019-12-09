@@ -1,11 +1,18 @@
 let WIDTH  = window.innerWidth;
 let HEIGHT = window.innerHeight;
 let keyboard = {};
+
+//Scene objects
 let scene, camera, renderer, ship, laserBeam, laserLight, asteroidArray = [], hearts = [];
+
+//Time variables
 let elapsedTime, startingTime, laserFireTime;
 
+//Bounding boxes for physics collisions
 let shipBoundingBoxHelper, asteroidBoundingBoxesHelper = [], asteroidBoundingBoxes = [];
 let laserBoundingBoxHelper, laserBoundingBox, shipBoundingBox;
+
+//Game Logic variables
 let currentState;
 let numAsteroids = 0;
 let shipLives = 3;
@@ -13,17 +20,21 @@ let score = 0;
 
 let fontLoader, font;
 
+    /*                  */
+    /* Heads Up Display */
+    /*                  */
+
 // crosshair init
-var vert_geo = new THREE.PlaneGeometry( .5, 2, 0.1 );
-var hor_geo = new THREE.PlaneGeometry( 2, .5, 0.1 );
-var planeMaterial = new THREE.MeshBasicMaterial( {color: 0xCCCF11, side: THREE.DoubleSide} );
-var cross_hair_up = new THREE.Mesh( vert_geo, planeMaterial );
-var cross_hair_down = new THREE.Mesh( vert_geo, planeMaterial );
-var cross_hair_left = new THREE.Mesh( hor_geo, planeMaterial );
-var cross_hair_right = new THREE.Mesh( hor_geo, planeMaterial );
+let vert_geo = new THREE.PlaneGeometry( .5, 2, 0.1 );
+let hor_geo = new THREE.PlaneGeometry( 2, .5, 0.1 );
+let planeMaterial = new THREE.MeshBasicMaterial( {color: 0xCCCF11, side: THREE.DoubleSide} );
+let cross_hair_up = new THREE.Mesh( vert_geo, planeMaterial );
+let cross_hair_down = new THREE.Mesh( vert_geo, planeMaterial );
+let cross_hair_left = new THREE.Mesh( hor_geo, planeMaterial );
+let cross_hair_right = new THREE.Mesh( hor_geo, planeMaterial );
 let scoreText = new THREE.PlaneGeometry();
 
-// Keeps the crosshair in always on screen
+// Keeps the HUD in always on screen
 cross_hair_up.renderOrder = 999;
 cross_hair_up.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
 cross_hair_down.renderOrder = 999;
@@ -34,57 +45,6 @@ cross_hair_right.renderOrder = 999;
 cross_hair_right.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
 scoreText.renderOrder = 999;
 scoreText.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
-
-//////////////settings/////////
-var movementSpeed = 80;
-var totalObjects = 1000;
-var objectSize = 100;
-var sizeRandomness = 4000;
-var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
-/////////////////////////////////
-var dirs = [];
-var parts = [];
-
-function ExplodeAnimation(x, y, z)
-{
-  var geometry = new THREE.Geometry();
-  
-  for (var i = 0; i < totalObjects; i ++) 
-  {
-    var vertex = new THREE.Vector3();
-    vertex.x = x;
-    vertex.y = y;
-    vertex.z = z;
-  
-    geometry.vertices.push( vertex );
-    dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
-  }
-  var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
-  var particles = new THREE.ParticleSystem( geometry, material );
-  
-  this.object = particles;
-  this.status = true;
-  
-  this.xDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-  this.yDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-  this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
-  
-  scene.add( this.object  ); 
-  
-  this.update = function(){
-    if (this.status == true){
-      var pCount = totalObjects;
-      while(pCount--) {
-        var particle =  this.object.geometry.vertices[pCount]
-        particle.y += dirs[pCount].y;
-        particle.x += dirs[pCount].x;
-        particle.z += dirs[pCount].z;
-      }
-      this.object.geometry.verticesNeedUpdate = true;
-    }
-  }
-  
-}
 
     /*           */
     /* Constants */
@@ -145,17 +105,17 @@ const SPAWNPOINTS = [
     /* Scene Initialization */
     /*                      */
 
-function init() {
+function Init() {
     currentState = GAMESTATES.initState;
     startingTime = new Date();
     scene = new THREE.Scene();
     shipBoundingBox = new THREE.Box3();
     InitFontLoader();
-    initRenderer();
-    initSkyBox();
-    initScene();
+    InitRenderer();
+    InitSkyBox();
+    InitScene();
     animate();
-    addEventListeners();
+    AddEventListeners();
 }
 
 function InitFontLoader() {
@@ -175,7 +135,7 @@ function InitFontLoader() {
     
 }
 
-function initRenderer() {
+function InitRenderer() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize ( window.innerWidth, window.innerHeight );
   renderer.shadowMap.enabled = true;
@@ -183,7 +143,7 @@ function initRenderer() {
   document.body.appendChild( renderer.domElement );
 }
 
-function initCamera() {
+function InitCamera() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(100, 80, 0);
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -200,40 +160,40 @@ function initCamera() {
   });
 }
 
-function initSkyBox(){
-  var materialArray = [];
+function InitSkyBox(){
+  let materialArray = [];
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_lf.jpg')
+    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_lf.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_rt.jpg')
+    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_rt.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_up.jpg')}));
-  materialArray.push(new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('images/cwd_dn.jpg')
-}));
+    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_up.jpg')}));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_ft.jpg')
+      map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_dn.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('images/cwd_bk.jpg')
+    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_ft.jpg')
+  }));
+  materialArray.push(new THREE.MeshBasicMaterial({
+    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_bk.jpg')
   }));
 
-  for (var i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
+  for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
 
-  var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-  var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
-  var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+  let skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
+  let skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
+  let skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
   skybox.name = "Skybox";
   scene.add( skybox );
 }
 
-function initScene() {
+function InitScene() {
     let objLoader = new THREE.OBJLoader();
     let mtlLoader = new THREE.MTLLoader();
-    initHearts();
-    initCamera();
-    
+    InitHearts();
+    InitCamera();
 
     mtlLoader.setPath('./assets/');
     mtlLoader.load("Arc170.mtl",function (mtls){
@@ -247,11 +207,9 @@ function initScene() {
             obj.rotation.set(0,-Math.PI/2,0)
             ship = obj;
             
-            ship.name = "ship";
             scene.add(ship);
             if(SHOWBOUNDINGBOXES) {
                 shipBoundingBoxHelper = new THREE.BoundingBoxHelper( ship, 0xffff00 );
-                shipBoundingBoxHelper.name = "ShipBoundingBox";
                 scene.add(shipBoundingBoxHelper);
             }
             
@@ -259,10 +217,12 @@ function initScene() {
         });
     });
     
+    //Add low intensity lighting on entire scene
     let ambientLight = new THREE.AmbientLight(0xffffff, .1);
     ambientLight.position.set(0,0,0);
     scene.add(ambientLight);
 
+    //Light from sun
     let sun = new THREE.PointLight(0xffffff, 2, 0, 2);
     sun.position.set(-500,2500,-125);
     sun.angle = (Math.PI / 2);
@@ -275,24 +235,21 @@ function initScene() {
     sun.shadow.camera.far = 5000;
     sun.shadow.camera.fov = 100;
 
-    var textureLoader = new THREE.TextureLoader();
-
-    var textureFlare0 = textureLoader.load( "/assets/lensflare0.png" );
-    var textureFlare1 = textureLoader.load( "/assets/lensflare2.png" );
-    var textureFlare2 = textureLoader.load( "/assets/lensflare3.png" );
-
-    var lensflare = new THREE.Lensflare();
-
+    //Add lensflare to sun light
+    let textureLoader = new THREE.TextureLoader();
+    let textureFlare0 = textureLoader.load( "/assets/lensflare0.png" );
+    let textureFlare1 = textureLoader.load( "/assets/lensflare2.png" );
+    let textureFlare2 = textureLoader.load( "/assets/lensflare3.png" );
+    let lensflare = new THREE.Lensflare();
     lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1000, 0, new THREE.Color(0xFFC733)) );
     lensflare.addElement( new THREE.LensflareElement( textureFlare1, 512, 0 ) );
     lensflare.addElement( new THREE.LensflareElement( textureFlare2, 128, 0.5 ) );
-
     sun.add(lensflare);
 
+    //Low-intensity light from earth
     let eart = new THREE.PointLight(0x1111ee, .5, 0, 2);
     eart.position.set(0,0,2500);
     eart.lookAt(0,0,0);
-    
     eart.castShadow = true;
     eart.shadow.mapSize.width = 512;
     eart.shadow.mapSize.height = 512;
@@ -303,6 +260,7 @@ function initScene() {
     scene.add(sun);
     scene.add(eart);
     
+    //Adujust crosshair rotation
     cross_hair_up.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
     cross_hair_down.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
     cross_hair_left.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
@@ -317,11 +275,17 @@ function initScene() {
     laserLight.position.set(0,0,0);
     laserLight.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
 
-    initialAsteroid();
+    InitAsteroids();
 }
 
-function initHearts() {
-    for (var i=0; i<3; i++ ) {
+function InitAsteroids() {
+    for(let i = 0; i < MAXASTEROIDS; i++) {
+        SpawnAsteroid();
+    }
+}
+
+function InitHearts() {
+    for (let i=0; i<3; i++ ) {
       let material = new THREE.MeshBasicMaterial();
       let objLoader = new THREE.OBJLoader();
       let mtlLoader = new THREE.MTLLoader();
@@ -346,22 +310,22 @@ function initHearts() {
   }
 
 function GameOver() {
-    var color = new THREE.Color(0xFD0000);
+    let color = new THREE.Color(0xFD0000);
 
-    var matLite = new THREE.MeshBasicMaterial( {
+    let matLite = new THREE.MeshBasicMaterial( {
         color: color,
         transparent: false,
         opacity: 0.1,
     });
 
-	var geometry = new THREE.TextGeometry( 'GAME OVER', {
+	let geometry = new THREE.TextGeometry( 'GAME OVER', {
 		font: font,
 		size: 20,
         height: 4,
         curveSegments: 20
     });
     
-    var text = new THREE.Mesh( geometry, matLite );
+    let text = new THREE.Mesh( geometry, matLite );
     text.rotation.copy(camera.rotation);
     text.position.copy(camera.position);
     text.updateMatrix();
@@ -406,7 +370,7 @@ function InitHud() {
     
         // hearts
         // makes sure hearts are always showing
-        for(var i = 0; i<3; i++){
+        for(let i = 0; i<3; i++){
         hearts[i].renderOrder = 999;
         hearts[i].onBeforeRender = function( renderer ) { renderer.clearDepth(); };
         }
@@ -448,11 +412,68 @@ function InitHud() {
     }
 }
 
-    /*           */
-    /* Game Loop */
-    /*           */
+function RenderScore() {
+    if(scoreText != null) {
+        scene.remove(scoreText);
+    }
 
-var loop = new PhysicsLoop(60);
+    let color = new THREE.Color(0xFD0000);
+
+    let matLite = new THREE.MeshBasicMaterial( {
+        color: color,
+        transparent: false,
+        opacity: 0.1,
+    });
+
+	let geometry = new THREE.TextGeometry( JSON.stringify(score), {
+		font: font,
+		size: 15,
+        height: 1,
+    });
+    
+    let text = new THREE.Mesh( geometry, matLite );
+    scoreText = text;
+    InitHud();
+    scene.add(text);
+    render();
+}
+
+    /*                */
+    /* Ship Functions */
+    /*                */
+function CheckForShipDamage() {
+    let shipBoundingBox = new THREE.Box3();
+    shipBoundingBox.setFromObject(ship);
+    let shipDimensions = {
+        minX: shipBoundingBox.min.x,
+        minY: shipBoundingBox.min.y,
+        minZ: shipBoundingBox.min.z,
+        maxX: shipBoundingBox.max.x,
+        maxY: shipBoundingBox.max.y,
+        maxZ: shipBoundingBox.max.z,
+    }
+    CheckShipAsteroidCollisions(shipDimensions);
+}
+function UpdateShipHealth() {
+    let numHearts = shipLives - 1;
+    let heart = hearts[numHearts];
+    scene.remove(heart);
+    shipLives--;
+    if(shipLives == 0) {
+        console.log("Game Over!");
+        currentState = GAMESTATES.endGameState;
+        scene.remove(cross_hair_down);
+        scene.remove(cross_hair_up);
+        scene.remove(cross_hair_left);
+        scene.remove(cross_hair_right);
+    }
+}
+
+    /*            */
+    /* Game Logic */
+    /*            */
+
+let loop = new PhysicsLoop(60);
 
 loop.add(function(delta) {
     UpdateTime();
@@ -482,25 +503,118 @@ loop.add(function(delta) {
     
 });
 
-
-
-function CheckForShipDamage() {
-    let shipBoundingBox = new THREE.Box3();
-    shipBoundingBox.setFromObject(ship);
-    let shipDimensions = {
-        minX: shipBoundingBox.min.x,
-        minY: shipBoundingBox.min.y,
-        minZ: shipBoundingBox.min.z,
-        maxX: shipBoundingBox.max.x,
-        maxY: shipBoundingBox.max.y,
-        maxZ: shipBoundingBox.max.z,
-    }
-    CheckShipAsteroidCollisions(shipDimensions);
+function UpdateScore() {
+    score++;
+    RenderScore();
 }
 
-// updates asteroid position
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Ship&Cam Rotation
+  if(keyboard[32]) { //Space
+    
+    if(laserBeam == null && currentState == GAMESTATES.playState) {
+        scene.add(laserLight);
+        laserBeam	= Laser();
+        laserFireTime = new Date();
+        scene.add(laserBeam);
+        
+        laserBoundingBox = new THREE.Box3();
+        laserBoundingBox.setFromObject(laserBeam);
+        let laserBoundingBoxDimensions = {
+            minX: laserBoundingBox.min.x,
+            minY: laserBoundingBox.min.y,
+            minZ: laserBoundingBox.min.z,
+            maxX: laserBoundingBox.max.x,
+            maxY: laserBoundingBox.max.y,
+            maxZ: laserBoundingBox.max.z
+        };
+
+        CheckLaserAsteroidCollisions(laserBoundingBoxDimensions);
+        if(SHOWBOUNDINGBOXES) {
+            laserBoundingBoxHelper = new THREE.BoundingBoxHelper( laserBeam, 0xffff00 );
+            scene.add(laserBoundingBoxHelper);
+        }
+
+    }
+  }
+}
+
+function render() {
+  renderer.render(scene, camera);
+}
+
+function Laser() {
+    let geometry = new THREE.CylinderBufferGeometry( 4, 1, 3500, 100 );
+    let material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+    let laser = new THREE.Mesh( geometry, material );
+    laser.position.copy(ship.position);
+    laser.rotation.copy(camera.rotation);
+    laser.updateMatrix();
+    laser.rotateX(5 * Math.PI/8);
+    laser.translateZ(-13);
+    laser.translateY(-1750);
+    return laser;
+}
+
+/*                     */
+/* Collision Functions */
+/*                     */
+
+function CheckLaserAsteroidCollisions(boxDimensions) {
+    for(let i = 0; i < MAXASTEROIDS; i++) {
+        let asteroid = asteroidArray[i];
+        if(asteroid == null)
+            continue;
+        let asteroidBoundingBox = new THREE.Box3();
+        asteroidBoundingBox.setFromObject(asteroid);
+        let asteroidDimensions = {
+            minX: asteroidBoundingBox.min.x,
+            minY: asteroidBoundingBox.min.y,
+            minZ: asteroidBoundingBox.min.z,
+            maxX: asteroidBoundingBox.max.x,
+            maxY: asteroidBoundingBox.max.y,
+            maxZ: asteroidBoundingBox.max.z,
+        };
+
+        if(CheckBoxOverlap(boxDimensions, asteroidDimensions)) { 
+            DeathOfAnAstroid(i);
+        }
+    }
+}
+
+function CheckShipAsteroidCollisions(boxDimensions) {
+    
+    for(let i = 0; i < MAXASTEROIDS; i++) {
+        let asteroid = asteroidArray[i];
+        if(asteroid == null)
+            continue;
+        let asteroidBoundingBox = new THREE.Box3();
+        asteroidBoundingBox.setFromObject(asteroid);
+        let asteroidDimensions = {
+            minX: asteroidBoundingBox.min.x,
+            minY: asteroidBoundingBox.min.y,
+            minZ: asteroidBoundingBox.min.z,
+            maxX: asteroidBoundingBox.max.x,
+            maxY: asteroidBoundingBox.max.y,
+            maxZ: asteroidBoundingBox.max.z,
+        };
+
+        if(CheckBoxOverlap(boxDimensions, asteroidDimensions)) { 
+            DeathOfAnAstroid(i);
+            UpdateShipHealth();
+        }
+    }
+}
+
+    /*                    */
+    /* Asteroid Functions */
+    /*                    */
+
+// updates all asteroids position to ship
 function MoveAsteroids() {
-    for(var i = 0; i < MAXASTEROIDS; i++) {
+    for(let i = 0; i < MAXASTEROIDS; i++) {
         let asteroid = asteroidArray[i];
         if(asteroid == null)
             continue;
@@ -532,49 +646,8 @@ function MoveAsteroids() {
     render();
 }
 
-function animate() {
-  requestAnimationFrame(animate);
-
-  // Ship&Cam Rotation
-  if(keyboard[32]) { //Space
-    
-    if(laserBeam == null && currentState == GAMESTATES.playState) {
-        // console.log("Shoot laserz!");
-        scene.add(laserLight);
-        laserBeam	= Laser();
-        laserFireTime = new Date();
-        scene.add(laserBeam);
-        
-        laserBoundingBox = new THREE.Box3();
-        laserBoundingBox.setFromObject(laserBeam);
-        let laserBoundingBoxDimensions = {
-            minX: laserBoundingBox.min.x,
-            minY: laserBoundingBox.min.y,
-            minZ: laserBoundingBox.min.z,
-            maxX: laserBoundingBox.max.x,
-            maxY: laserBoundingBox.max.y,
-            maxZ: laserBoundingBox.max.z
-        };
-
-        CheckLaserAsteroidCollisions(laserBoundingBoxDimensions);
-        if(SHOWBOUNDINGBOXES) {
-            laserBoundingBoxHelper = new THREE.BoundingBoxHelper( laserBeam, 0xffff00 );
-            scene.add(laserBoundingBoxHelper);
-        }
-
-    }
-  }
-}
-
-function initialAsteroid() {
-    for(var i = 0; i < MAXASTEROIDS; i++) {
-        spawnAsteroid();
-    }
-}
-
-function spawnAsteroid() {
-    console.log("Spawning asteroid");
-    var asteroid;
+function SpawnAsteroid() {
+    let asteroid;
     let objLoader = new THREE.OBJLoader();
     let mtlLoader = new THREE.MTLLoader();
     let position = SPAWNPOINTS[Math.floor(Math.random() * 8)];
@@ -593,13 +666,13 @@ function spawnAsteroid() {
             asteroid.name = "Asteroid" + numAsteroids + 1;
             asteroidArray.push(asteroid);
             if(SHOWBOUNDINGBOXES) {
-                var asteroidBoundingBoxHelper = new THREE.BoundingBoxHelper( asteroid, 0xffff00 );
+                let asteroidBoundingBoxHelper = new THREE.BoundingBoxHelper( asteroid, 0xffff00 );
                 asteroidBoundingBoxHelper.name = "BoundingBoxHelper";
                 scene.add(asteroidBoundingBoxHelper);
                 asteroidBoundingBoxesHelper.push(asteroidBoundingBoxHelper);
             }
 
-            var asteroidBoundingBox = new THREE.Box3();
+            let asteroidBoundingBox = new THREE.Box3();
             asteroidBoundingBox.setFromObject(asteroid);
             asteroidBoundingBoxes.push(asteroidBoundingBox);
             scene.add(asteroid);
@@ -610,77 +683,6 @@ function spawnAsteroid() {
     return asteroid;
 }
 
-function render() {
-  renderer.render(scene, camera);
-}
-
-/* Object Spawning Functions */
-function Laser() {
-    var geometry = new THREE.CylinderBufferGeometry( 4, 1, 3500, 100 );
-    var material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-    var laser = new THREE.Mesh( geometry, material );
-    laser.position.copy(ship.position);
-    laser.rotation.copy(camera.rotation);
-    laser.updateMatrix();
-    laser.rotateX(5 * Math.PI/8);
-    laser.translateZ(-13);
-    laser.translateY(-1750);
-    return laser;
-}
-
-/*                     */
-/* Collision Functions */
-/*                     */
-
-function CheckLaserAsteroidCollisions(boxDimensions) {
-    for(var i = 0; i < MAXASTEROIDS; i++) {
-        let asteroid = asteroidArray[i];
-        if(asteroid == null)
-            continue;
-        let asteroidBoundingBox = new THREE.Box3();
-        asteroidBoundingBox.setFromObject(asteroid);
-        let asteroidDimensions = {
-            minX: asteroidBoundingBox.min.x,
-            minY: asteroidBoundingBox.min.y,
-            minZ: asteroidBoundingBox.min.z,
-            maxX: asteroidBoundingBox.max.x,
-            maxY: asteroidBoundingBox.max.y,
-            maxZ: asteroidBoundingBox.max.z,
-        };
-
-        if(checkBoxOverlap(boxDimensions, asteroidDimensions)) { 
-            DeathOfAnAstroid(i);
-        }
-    }
-}
-
-function CheckShipAsteroidCollisions(boxDimensions) {
-    
-    for(var i = 0; i < MAXASTEROIDS; i++) {
-        let asteroid = asteroidArray[i];
-        if(asteroid == null)
-            continue;
-        let asteroidBoundingBox = new THREE.Box3();
-        asteroidBoundingBox.setFromObject(asteroid);
-        let asteroidDimensions = {
-            minX: asteroidBoundingBox.min.x,
-            minY: asteroidBoundingBox.min.y,
-            minZ: asteroidBoundingBox.min.z,
-            maxX: asteroidBoundingBox.max.x,
-            maxY: asteroidBoundingBox.max.y,
-            maxZ: asteroidBoundingBox.max.z,
-        };
-
-        if(checkBoxOverlap(boxDimensions, asteroidDimensions)) { 
-            DeathOfAnAstroid(i);
-            UpdateShipHealth();
-        }
-    }
-}
-
-    /*                    */
-    /* Asteroid Functions */
-    /*                    */
 function DestroyAllAsteroids() {
     for(let i = 0; i < MAXASTEROIDS; i++)
     {
@@ -694,7 +696,6 @@ function DestroyAllAsteroids() {
 // will remove astroidArray[a] from the array and scene
 function DeathOfAnAstroid(a) {
     let asteroid = asteroidArray[a];
-    // parts.push(new ExplodeAnimation(asteroid.position.x, asteroid.position.y, asteroid.position.z));
     let position = SPAWNPOINTS[Math.floor(Math.random() * 8)];
     asteroid.position.set(position.positionX, position.positionY, position.positionZ);
     if(SHOWBOUNDINGBOXES) {
@@ -702,59 +703,6 @@ function DeathOfAnAstroid(a) {
         asteroidBoundingBoxHelper.setFromObject(asteroid);
     }
     UpdateScore();
-}
-
-function UpdateScore() {
-    score++;
-    RenderScore();
-}
-
-function RenderScore() {
-    console.log("Rendering score");
-    if(scoreText != null) {
-        scene.remove(scoreText);
-    }
-
-    var color = new THREE.Color(0xFD0000);
-
-    var matLite = new THREE.MeshBasicMaterial( {
-        color: color,
-        transparent: false,
-        opacity: 0.1,
-    });
-
-    console.log(score);
-	var geometry = new THREE.TextGeometry( JSON.stringify(score), {
-		font: font,
-		size: 15,
-        height: 1,
-    });
-    
-    var text = new THREE.Mesh( geometry, matLite );
-    scoreText = text;
-    scoreText.position.set(-5000,5000,5000);
-    InitHud();
-    scene.add(text);
-    render();
-}
-
-    /*                */
-    /* Ship Functions */
-    /*                */
-
-function UpdateShipHealth() {
-    let numHearts = shipLives - 1;
-    let heart = hearts[numHearts];
-    scene.remove(heart);
-    shipLives--;
-    if(shipLives == 0) {
-        console.log("Game Over!");
-        currentState = GAMESTATES.endGameState;
-        scene.remove(cross_hair_down);
-        scene.remove(cross_hair_up);
-        scene.remove(cross_hair_left);
-        scene.remove(cross_hair_right);
-    }
 }
 
 function ShipDestruction() {
@@ -773,8 +721,8 @@ function UpdateTime() {
 }
 
 function CheckLaserBeamTime() {
-    var now = new Date().getTime();
-    var elapsedSinceLaserFire = now - laserFireTime;
+    let now = new Date().getTime();
+    let elapsedSinceLaserFire = now - laserFireTime;
     if(elapsedSinceLaserFire > LASEREFFECTMILLISECONDS){
         scene.remove(laserBeam);
         laserBeam = null;
@@ -784,15 +732,17 @@ function CheckLaserBeamTime() {
     }
 }
 
-/* Event Listeners */
-function keyDown(event) {
+    /*                 */
+    /* Event Listeners */
+    /*                 */
+function KeyDown(event) {
     keyboard[event.keyCode] = true;
 }
-function keyUp(event) {
+function KeyUp(event) {
     keyboard[event.keyCode] = false;
 }
 
-function addEventListeners() {
+function AddEventListeners() {
     window.addEventListener (
         "resize",
         function () {
@@ -805,10 +755,10 @@ function addEventListeners() {
         }
     );
     
-    window.addEventListener('keydown', keyDown);
-    window.addEventListener('keyup', keyUp);
+    window.addEventListener('keydown', KeyDown);
+    window.addEventListener('keyup', KeyUp);
 }
 
 //Start the Game!
-init();
+Init();
 loop.start();

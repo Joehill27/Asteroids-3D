@@ -1,5 +1,5 @@
 //Load an object given the path and name
-function loadObj( path, name) {
+function LoadObj( path, name) {
     var obj;
     var mtlLoader = new THREE.MTLLoader();
     mtlLoader.setPath( path );
@@ -19,7 +19,7 @@ function loadObj( path, name) {
 }
 
 //Checks overlap between two spheres
-function checkSphereOverlap(sphere1Radius, sphere1Center, sphere2Radius, sphere2Center) {
+function CheckSphereOverlap(sphere1Radius, sphere1Center, sphere2Radius, sphere2Center) {
     var distance = Math.sqrt((sphere1Center.x - sphere2Center.x) * (sphere1Center.x - sphere2Center.x) +
     (sphere1Center.y - sphere2Center.y) * (sphere1Center.y - sphere2Center.y) +
     (sphere1Center.z - sphere2Center.z) * (sphere1Center.z - sphere2Center.z));
@@ -28,7 +28,7 @@ function checkSphereOverlap(sphere1Radius, sphere1Center, sphere2Radius, sphere2
 }
 
 //Checks overlap between two boxes
-function checkBoxOverlap(a, b) {
+function CheckBoxOverlap(a, b) {
     var result = (a.minX <= b.maxX && a.maxX >= b.minX) &&
          (a.minY <= b.maxY && a.maxY >= b.minY) &&
          (a.minZ <= b.maxZ && a.maxZ >= b.minZ);
@@ -36,7 +36,7 @@ function checkBoxOverlap(a, b) {
 }
 
 //Checks overlap between box and sphere
-function checkBoxSphereOverlap(box, sphere) {
+function CheckBoxSphereOverlap(box, sphere) {
     var x = Math.max(box.minX, Math.min(sphere.x, box.maxX));
     var y = Math.max(box.minY, Math.min(sphere.y, box.maxY));
     var z = Math.max(box.minZ, Math.min(sphere.z, box.maxZ));
