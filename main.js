@@ -1,4 +1,5 @@
-let WIDTH, HEIGHT;
+let WIDTH  = window.innerWidth;
+let HEIGHT = window.innerHeight;
 let keyboard = {};
 let scene, camera, renderer, ship, laserBeam, laserLight, asteroidArray = [], hearts = [];
 let elapsedTime, startingTime, laserFireTime;
@@ -10,6 +11,8 @@ let numAsteroids = 0;
 let shipLives = 3;
 let score = 0;
 
+let fontLoader, font;
+
 // crosshair init
 var vert_geo = new THREE.PlaneGeometry( .5, 2, 0.1 );
 var hor_geo = new THREE.PlaneGeometry( 2, .5, 0.1 );
@@ -18,6 +21,7 @@ var cross_hair_up = new THREE.Mesh( vert_geo, planeMaterial );
 var cross_hair_down = new THREE.Mesh( vert_geo, planeMaterial );
 var cross_hair_left = new THREE.Mesh( hor_geo, planeMaterial );
 var cross_hair_right = new THREE.Mesh( hor_geo, planeMaterial );
+let scoreText = new THREE.PlaneGeometry();
 
 // Keeps the crosshair in always on screen
 cross_hair_up.renderOrder = 999;
@@ -28,6 +32,8 @@ cross_hair_left.renderOrder = 999;
 cross_hair_left.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
 cross_hair_right.renderOrder = 999;
 cross_hair_right.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+scoreText.renderOrder = 999;
+scoreText.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
 
 //////////////settings/////////
 var movementSpeed = 80;
@@ -144,11 +150,29 @@ function init() {
     startingTime = new Date();
     scene = new THREE.Scene();
     shipBoundingBox = new THREE.Box3();
+    InitFontLoader();
     initRenderer();
     initSkyBox();
     initScene();
     animate();
     addEventListeners();
+}
+
+function InitFontLoader() {
+    fontLoader = new THREE.FontLoader();
+    fontLoader.load('./assets/helvetiker_regular.typeface.json', function(f) {
+        scoreText = new THREE.TextGeometry( score, {
+            font: f,
+            size: 20,
+            height: 5,
+            curveSegments: 20
+        });
+        font = f;
+        scoreText.renderOrder = 999;
+        scoreText.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+    })
+    
+    
 }
 
 function initRenderer() {
@@ -165,9 +189,9 @@ function initCamera() {
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
       cameraControls.addEventListener("change", function() {
         camera.updateProjectionMatrix();
-        laserLight.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
-        ship.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
-        shipBoundingBox.setFromObject(ship);
+        if(laserLight) laserLight.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+        if(ship) ship.lookAt(-camera.position.x,-camera.position.y,-camera.position.z);
+        if(ship) shipBoundingBox.setFromObject(ship);
         if(shipBoundingBoxHelper != null) {
             shipBoundingBoxHelper.update();
         }
@@ -259,9 +283,9 @@ function initScene() {
 
     var lensflare = new THREE.Lensflare();
 
-    lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1500, 0, new THREE.Color(0xFFC733)) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1000, 0, new THREE.Color(0xFFC733)) );
     lensflare.addElement( new THREE.LensflareElement( textureFlare1, 512, 0 ) );
-    lensflare.addElement( new THREE.LensflareElement( textureFlare2, 60, 0.3 ) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare2, 128, 0.5 ) );
 
     sun.add(lensflare);
 
@@ -315,15 +339,13 @@ function initHearts() {
               hearts.push(obj);
           });
       });
+
+      InitHud();
     }
   
   }
 
 function GameOver() {
-    var loader = new THREE.FontLoader();
-
-    loader.load('./assets/helvetiker_regular.typeface.json', function ( font ) {
-
     var color = new THREE.Color(0xFD0000);
 
     var matLite = new THREE.MeshBasicMaterial( {
@@ -335,7 +357,7 @@ function GameOver() {
 	var geometry = new THREE.TextGeometry( 'GAME OVER', {
 		font: font,
 		size: 20,
-        height: 5,
+        height: 4,
         curveSegments: 20
     });
     
@@ -348,69 +370,82 @@ function GameOver() {
     text.translateZ(-170);
     scene.add(text);
     render();
-    });
 }
 
 function InitHud() {
-     // keeps crosshair always in the center
-     cross_hair_up.position.copy( camera.position );
-     cross_hair_up.rotation.copy( camera.rotation );
-     cross_hair_up.updateMatrix();
-     cross_hair_up.translateX( 0 );
-     cross_hair_up.translateY( 35 );
-     cross_hair_up.translateZ( - 80 );
- 
-     cross_hair_down.position.copy( camera.position );
-     cross_hair_down.rotation.copy( camera.rotation );
-     cross_hair_down.updateMatrix();
-     cross_hair_down.translateX( 0 );
-     cross_hair_down.translateY( 29 );
-     cross_hair_down.translateZ( - 80 );
- 
-     cross_hair_left.position.copy( camera.position );
-     cross_hair_left.rotation.copy( camera.rotation );
-     cross_hair_left.updateMatrix();
-     cross_hair_left.translateX( -3 );
-     cross_hair_left.translateY( 32 );
-     cross_hair_left.translateZ( - 80 );
- 
-     cross_hair_right.position.copy(camera.position );
-     cross_hair_right.rotation.copy( camera.rotation );
-     cross_hair_right.updateMatrix();
-     cross_hair_right.translateX( 3 );
-     cross_hair_right.translateY( 32 );
-     cross_hair_right.translateZ( - 80 );
- 
-     // hearts
-     // makes sure hearts are always showing
-     for(var i = 0; i<3; i++){
-       hearts[i].renderOrder = 999;
-       hearts[i].onBeforeRender = function( renderer ) { renderer.clearDepth(); };
-     }
- 
-     hearts[2].position.copy( camera.position );
-     hearts[2].rotation.copy( camera.rotation );
-     hearts[2].updateMatrix();
-     hearts[2].translateX( 100 );
-     hearts[2].translateY( -50 );
-     hearts[2].translateZ( - 80 );
-     hearts[2].rotateX(-Math.PI/2);
- 
-     hearts[1].position.copy( camera.position );
-     hearts[1].rotation.copy( camera.rotation );
-     hearts[1].updateMatrix();
-     hearts[1].translateX( 85 );
-     hearts[1].translateY( -50 );
-     hearts[1].translateZ( -80 );
-     hearts[1].rotateX(-Math.PI/2);
- 
-     hearts[0].position.copy( camera.position );
-     hearts[0].rotation.copy( camera.rotation );
-     hearts[0].updateMatrix();
-     hearts[0].translateX( 70 );
-     hearts[0].translateY( -50 );
-     hearts[0].translateZ( -80 );
-     hearts[0].rotateX(-Math.PI/2);
+
+    if(camera ) {
+        // keeps crosshair always in the center
+        cross_hair_up.position.copy( camera.position );
+        cross_hair_up.rotation.copy( camera.rotation );
+        cross_hair_up.updateMatrix();
+        cross_hair_up.translateX( 0 );
+        cross_hair_up.translateY( 35 );
+        cross_hair_up.translateZ( - 80 );
+    
+        cross_hair_down.position.copy( camera.position );
+        cross_hair_down.rotation.copy( camera.rotation );
+        cross_hair_down.updateMatrix();
+        cross_hair_down.translateX( 0 );
+        cross_hair_down.translateY( 29 );
+        cross_hair_down.translateZ( - 80 );
+    
+        cross_hair_left.position.copy( camera.position );
+        cross_hair_left.rotation.copy( camera.rotation );
+        cross_hair_left.updateMatrix();
+        cross_hair_left.translateX( -3 );
+        cross_hair_left.translateY( 32 );
+        cross_hair_left.translateZ( - 80 );
+    
+        cross_hair_right.position.copy(camera.position );
+        cross_hair_right.rotation.copy( camera.rotation );
+        cross_hair_right.updateMatrix();
+        cross_hair_right.translateX( 3 );
+        cross_hair_right.translateY( 32 );
+        cross_hair_right.translateZ( - 80 );
+    
+        // hearts
+        // makes sure hearts are always showing
+        for(var i = 0; i<3; i++){
+        hearts[i].renderOrder = 999;
+        hearts[i].onBeforeRender = function( renderer ) { renderer.clearDepth(); };
+        }
+    
+        hearts[2].position.copy( camera.position );
+        hearts[2].rotation.copy( camera.rotation );
+        hearts[2].updateMatrix();
+        hearts[2].translateX( 125 );
+        hearts[2].translateY( -50 );
+        hearts[2].translateZ( - 80 );
+        hearts[2].rotateX(-Math.PI/2);
+    
+        hearts[1].position.copy( camera.position );
+        hearts[1].rotation.copy( camera.rotation );
+        hearts[1].updateMatrix();
+        hearts[1].translateX( 110 );
+        hearts[1].translateY( -50 );
+        hearts[1].translateZ( -80 );
+        hearts[1].rotateX(-Math.PI/2);
+    
+        hearts[0].position.copy( camera.position );
+        hearts[0].rotation.copy( camera.rotation );
+        hearts[0].updateMatrix();
+        hearts[0].translateX( 95 );
+        hearts[0].translateY( -50 );
+        hearts[0].translateZ( -80 );
+        hearts[0].rotateX(-Math.PI/2);
+
+        if(scoreText.rotation && scoreText.position && camera.rotation && camera.position) {
+            scoreText.rotation.copy(camera.rotation);
+            scoreText.position.copy(camera.position);
+            scoreText.updateMatrix();
+            scoreText.translateX(-130);
+            scoreText.translateY(-50);
+            scoreText.translateZ(-80);
+        }
+        
+
+    }
 }
 
     /*           */
@@ -666,7 +701,41 @@ function DeathOfAnAstroid(a) {
         let asteroidBoundingBoxHelper = asteroidBoundingBoxesHelper[a];
         asteroidBoundingBoxHelper.setFromObject(asteroid);
     }
+    UpdateScore();
+}
+
+function UpdateScore() {
     score++;
+    RenderScore();
+}
+
+function RenderScore() {
+    console.log("Rendering score");
+    if(scoreText != null) {
+        scene.remove(scoreText);
+    }
+
+    var color = new THREE.Color(0xFD0000);
+
+    var matLite = new THREE.MeshBasicMaterial( {
+        color: color,
+        transparent: false,
+        opacity: 0.1,
+    });
+
+    console.log(score);
+	var geometry = new THREE.TextGeometry( JSON.stringify(score), {
+		font: font,
+		size: 15,
+        height: 1,
+    });
+    
+    var text = new THREE.Mesh( geometry, matLite );
+    scoreText = text;
+    scoreText.position.set(-5000,5000,5000);
+    InitHud();
+    scene.add(text);
+    render();
 }
 
     /*                */
