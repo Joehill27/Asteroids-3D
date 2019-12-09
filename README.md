@@ -39,6 +39,9 @@ Rodrigo Lopez
  
  
 To run locally using python:
+
 Open directory containing index.html
+
 Use command: python -m http.server
+
 Open project using local address: localhost:8000
