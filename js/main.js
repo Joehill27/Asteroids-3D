@@ -242,8 +242,8 @@ function InitScene() {
     let textureFlare2 = textureLoader.load( "/assets/lensflare3.png" );
     let lensflare = new THREE.Lensflare();
     lensflare.addElement( new THREE.LensflareElement( textureFlare0, 1000, 0, new THREE.Color(0xFFC733)) );
-    lensflare.addElement( new THREE.LensflareElement( textureFlare1, 512, 0 ) );
-    lensflare.addElement( new THREE.LensflareElement( textureFlare2, 128, 0.5 ) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare1, 256, 0.5 ) );
+    lensflare.addElement( new THREE.LensflareElement( textureFlare2, 128, 0.2 ) );
     sun.add(lensflare);
 
     //Low-intensity light from earth
@@ -378,7 +378,7 @@ function InitHud() {
         hearts[2].position.copy( camera.position );
         hearts[2].rotation.copy( camera.rotation );
         hearts[2].updateMatrix();
-        hearts[2].translateX( 125 );
+        hearts[2].translateX( 105 );
         hearts[2].translateY( -50 );
         hearts[2].translateZ( - 80 );
         hearts[2].rotateX(-Math.PI/2);
@@ -386,7 +386,7 @@ function InitHud() {
         hearts[1].position.copy( camera.position );
         hearts[1].rotation.copy( camera.rotation );
         hearts[1].updateMatrix();
-        hearts[1].translateX( 110 );
+        hearts[1].translateX( 90 );
         hearts[1].translateY( -50 );
         hearts[1].translateZ( -80 );
         hearts[1].rotateX(-Math.PI/2);
@@ -394,7 +394,7 @@ function InitHud() {
         hearts[0].position.copy( camera.position );
         hearts[0].rotation.copy( camera.rotation );
         hearts[0].updateMatrix();
-        hearts[0].translateX( 95 );
+        hearts[0].translateX( 75 );
         hearts[0].translateY( -50 );
         hearts[0].translateZ( -80 );
         hearts[0].rotateX(-Math.PI/2);
@@ -403,7 +403,7 @@ function InitHud() {
             scoreText.rotation.copy(camera.rotation);
             scoreText.position.copy(camera.position);
             scoreText.updateMatrix();
-            scoreText.translateX(-130);
+            scoreText.translateX(-110);
             scoreText.translateY(-50);
             scoreText.translateZ(-80);
         }
