@@ -163,28 +163,29 @@ function InitCamera() {
 function InitSkyBox(){
   let materialArray = [];
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_lf.jpg')
+    map: new THREE.TextureLoader().load('./assets/skybox/cwd_lf.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_rt.jpg')
+    map: new THREE.TextureLoader().load('./assets/skybox/cwd_rt.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_up.jpg')}));
-  materialArray.push(new THREE.MeshBasicMaterial({
-      map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_dn.jpg')
+    map: new THREE.TextureLoader().load('./assets/skybox/cwd_up.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_ft.jpg')
+      map: new THREE.TextureLoader().load('./assets/skybox/cwd_dn.jpg')
   }));
   materialArray.push(new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture('../assets/skybox/cwd_bk.jpg')
+    map: new THREE.TextureLoader().load('./assets/skybox/cwd_ft.jpg')
+  }));
+  materialArray.push(new THREE.MeshBasicMaterial({
+    map: new THREE.TextureLoader().load('./assets/skybox/cwd_bk.jpg')
   }));
 
   for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
 
-  let skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
+//   let skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
   let skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 5000, 1, 1, 1 );
-  let skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+  let skybox = new THREE.Mesh( skyboxGeom, materialArray );
   skybox.name = "Skybox";
   scene.add( skybox );
 }
